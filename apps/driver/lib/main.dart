@@ -209,9 +209,28 @@ class _DriverMapPageState extends State<DriverMapPage> {
                 controller: controller,
                 padding: const EdgeInsets.fromLTRB(18, 11, 18, 105),
                 children: [
-                  Center(child: Container(width: 42, height: 4,
-                    decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
-                  const SizedBox(height: 15),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+                    decoration: BoxDecoration(color: const Color(0xFF0B1D4D), borderRadius: BorderRadius.circular(20)),
+                    child: Row(children: [
+                      ClipRRect(borderRadius: BorderRadius.circular(12),
+                        child: Image.asset('../driver_icon.png', width: 48, height: 48, fit: BoxFit.cover)),
+                      const SizedBox(width: 11),
+                      const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('Bake Taxi', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                        Text('Кабинет водителя', style: TextStyle(color: Color(0xFFD9E0EA), fontSize: 11)),
+                      ])),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                        Text(_online ? 'НА ЛИНИИ' : 'ОФЛАЙН',
+                          style: TextStyle(color: _online ? const Color(0xFF8FE0A8) : Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+                        Switch(value: _online, onChanged: _loadingOrders ? null : _setOnline,
+                          activeColor: const Color(0xFFFFD400)),
+                      ]),
+                    ]),
+                  ),
+                  const Text('Сегодня заработок', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF10243A))),
+                  const SizedBox(height: 8),
                   Row(children: [
                     Expanded(child: _dashboardMetric(
                       icon: Icons.bolt_rounded, title: 'Приоритет', value: '+7',
@@ -255,24 +274,17 @@ class _DriverMapPageState extends State<DriverMapPage> {
                     _serviceChip('Шиномонтаж', Icons.build_circle_rounded),
                   ]),
                   const SizedBox(height: 15),
-                  SizedBox(
-                    height: 58,
-                    child: FilledButton(
-                      onPressed: _loadingOrders ? null : () => _setOnline(!_online),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _online ? const Color(0xFF16834A) : const Color(0xFFFFD400),
-                        foregroundColor: const Color(0xFF10243A),
-                        shape: const StadiumBorder(),
-                        elevation: 0,
-                      ),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Text(_loadingOrders ? 'Подождите…' : (_online ? 'На линии' : 'Офлайн / Выйти на линию'),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                        const SizedBox(width: 9),
-                        Icon(_online ? Icons.check_circle_rounded : Icons.arrow_forward_rounded),
-                      ]),
-                    ),
-                  ),
+                  const SizedBox(height: 6),
+                  Container(height: 7, decoration: BoxDecoration(color: const Color(0xFFE8ECF2), borderRadius: BorderRadius.circular(8)),
+                    child: FractionallySizedBox(alignment: Alignment.centerLeft, widthFactor: 0, child: Container(decoration: BoxDecoration(color: const Color(0xFFFFD400), borderRadius: BorderRadius.circular(8))))),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    Expanded(child: _dashboardMetric(icon: Icons.receipt_long_rounded, title: 'Заказы', value: '0', tint: const Color(0xFF16834A))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _dashboardMetric(icon: Icons.route_rounded, title: 'Пробег', value: '0 км', tint: const Color(0xFFB58A16))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _dashboardMetric(icon: Icons.schedule_rounded, title: 'Время', value: '0 ч', tint: const Color(0xFF345E9A))),
+                  ]),
                   const SizedBox(height: 13),
                   if (_online) ...[
                     Row(children: [
@@ -751,7 +763,7 @@ class _DriverAppShellState extends State<DriverAppShell> {
       destinations: const [
         NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Заказы'),
         NavigationDestination(icon: Icon(Icons.route_outlined), selectedIcon: Icon(Icons.route_rounded), label: 'Межгород'),
-        NavigationDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet), label: 'Деньги'),
+        NavigationDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet), label: 'Баланс'),
         NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_bubble_rounded), label: 'Чаты'),
         NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'Профиль'),
       ],
