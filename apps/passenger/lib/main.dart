@@ -44,11 +44,13 @@ class PlaceResult {
 }
 
 class PassengerMapPage extends StatefulWidget {
-  const PassengerMapPage({super.key, this.initialService = JibekServiceType.cityTaxi, this.initialDestination, this.initialNote});
+  const PassengerMapPage({super.key, this.initialService = JibekServiceType.cityTaxi, this.initialDestination, this.initialNote, this.openCategoryWindow = false, this.initialClass});
 
   final JibekServiceType initialService;
   final String? initialDestination;
   final String? initialNote;
+  final bool openCategoryWindow;
+  final String? initialClass;
 
   @override
   State<PassengerMapPage> createState() => _PassengerMapPageState();
@@ -96,7 +98,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   void initState() {
     super.initState();
     _service = widget.initialService;
-    _showCategoryWindow = widget.initialService != JibekServiceType.cityTaxi;
+    _class = widget.initialClass ?? _class;
+    _showCategoryWindow = widget.openCategoryWindow || widget.initialService != JibekServiceType.cityTaxi;
     _fromController.text = 'ул. Тауке хана, 52';
     _toController.text = 'ТРЦ «Mega Shymkent»';
     _fromFocusNode.addListener(_onAddressFocusChanged);
@@ -366,20 +369,44 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   }
 
   void _selectOffer(int index) {
-    setState(() {
-      _showCategoryWindow = index >= 4;
-      switch (index) {
-        case 0: _service = JibekServiceType.cityTaxi; _class = 'Комфорт'; break;
-        case 1: _service = JibekServiceType.cityTaxi; _class = 'Стандарт'; break;
-        case 2: _service = JibekServiceType.cityTaxi; _class = 'Бизнес'; break;
-        case 3: _service = JibekServiceType.cityTaxi; _class = 'Минивэн'; break;
-        case 4: _service = JibekServiceType.intercity; break;
-        case 5: _service = JibekServiceType.freight; break;
-        case 6: _service = JibekServiceType.parcel; break;
-        case 7: _service = JibekServiceType.towTruck; break;
-        case 8: _service = JibekServiceType.mobileTire; break;
-      }
-    });
+    late final JibekServiceType service;
+    String? vehicleClass;
+    switch (index) {
+      case 0: service = JibekServiceType.cityTaxi; vehicleClass = 'Комфорт'; break;
+      case 1: service = JibekServiceType.cityTaxi; vehicleClass = 'Стандарт'; break;
+      case 2: service = JibekServiceType.cityTaxi; vehicleClass = 'Бизнес'; break;
+      case 3: service = JibekServiceType.cityTaxi; vehicleClass = 'Минивэн'; break;
+      case 4: service = JibekServiceType.intercity; break;
+      case 5: service = JibekServiceType.freight; break;
+      case 6: service = JibekServiceType.parcel; break;
+      case 7: service = JibekServiceType.towTruck; break;
+      case 8: service = JibekServiceType.mobileTire; break;
+      default: return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => PassengerMapPage(
+        initialService: service,
+        initialClass: vehicleClass,
+        openCategoryWindow: true,
+      ),
+    ));
+  }
+
+  void _openCategory(JibekServiceType service) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => PassengerMapPage(
+        initialService: service,
+        openCategoryWindow: true,
+      ),
+    ));
+  }
+
+  void _closeCategoryWindow() {
+    if (widget.openCategoryWindow) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _showCategoryWindow = false);
+    }
   }
 
   int get _estimatedTaxiFare {
@@ -691,8 +718,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
                   onTap: () {
-                    setState(() => _showCategoryWindow = false);
-                    _toFocusNode.requestFocus();
+                    _closeCategoryWindow();
+                    if (!widget.openCategoryWindow) _toFocusNode.requestFocus();
                   },
                   child: const SizedBox(
                     height: 56,
@@ -725,8 +752,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       trailing: Text(place.$3, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF929292))),
                       onTap: () {
                         _toController.text = '${place.$1}, ${place.$2}';
-                        setState(() => _showCategoryWindow = false);
-                        _toFocusNode.requestFocus();
+                        _closeCategoryWindow();
+                        if (!widget.openCategoryWindow) _toFocusNode.requestFocus();
                       },
                     );
                   },
@@ -849,7 +876,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
             child: IconButton(
               onPressed: _showCategoryWindow
-                  ? () => setState(() => _showCategoryWindow = false)
+                  ? _closeCategoryWindow
                   : (_locating ? null : _findMe),
               icon: Icon(_showCategoryWindow ? Icons.arrow_back_rounded : Icons.navigation_rounded,
                   size: 27, color: const Color(0xFF172033)),
@@ -985,13 +1012,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Row(children: [
                             Expanded(child: _quickTile(context, 'Доставка', 'Посылки и товары', Icons.inventory_2_rounded,
-                              const Color(0xFFE9E3FF), () => setState(() { _service = JibekServiceType.parcel; _showCategoryWindow = true; }), height: menuHeight)),
+                              const Color(0xFFE9E3FF), () => _openCategory(JibekServiceType.parcel), height: menuHeight)),
                             const SizedBox(width: 4),
                             Expanded(child: _quickTile(context, 'Услуги', 'Эвакуатор, мастер…', Icons.build_rounded,
-                              const Color(0xFFD9F5EC), () => setState(() { _service = JibekServiceType.towTruck; _showCategoryWindow = true; }), height: menuHeight)),
+                              const Color(0xFFD9F5EC), () => _openCategory(JibekServiceType.towTruck), height: menuHeight)),
                             const SizedBox(width: 4),
                             Expanded(child: _quickTile(context, 'Межгород', 'Поездки по РК', Icons.route_rounded,
-                              const Color(0xFFDCEBFF), () => setState(() { _service = JibekServiceType.intercity; _showCategoryWindow = true; }), height: menuHeight)),
+                              const Color(0xFFDCEBFF), () => _openCategory(JibekServiceType.intercity), height: menuHeight)),
                             const SizedBox(width: 4),
                             Expanded(child: _quickTile(context, 'Помощь', 'Поддержка 24/7', Icons.headset_mic_rounded,
                               const Color(0xFFFFE3D4), () => Navigator.push(context, MaterialPageRoute(
