@@ -54,11 +54,42 @@ jobs:
             local application_id="$3"
             local app_label="$4"
             local output_name="$5"
+            local icon_source="$6"
 
             echo "===== Preparing ${output_name} ====="
             (
               cd "$app_dir"
               flutter create --platforms=android --org kz.baketaxi --project-name "$project_name" .
+
+              # Copy the original, unmodified Bake Taxi PNG into every Android density bucket.
+              # No resizing, recompression, conversion, or edits are performed on source files.
+              python3 - "$GITHUB_WORKSPACE/$icon_source" <<'PY'
+          import pathlib
+          import shutil
+          import sys
+
+          source = pathlib.Path(sys.argv[1])
+          if not source.is_file() or source.stat().st_size == 0:
+              raise SystemExit(f"Original launcher icon is missing or empty: {source}")
+
+          res = pathlib.Path("android/app/src/main/res")
+          densities = ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
+          for density in densities:
+              folder = res / f"mipmap-{density}"
+              folder.mkdir(parents=True, exist_ok=True)
+              for filename in ("ic_launcher.png", "ic_launcher_round.png"):
+                  shutil.copyfile(source, folder / filename)
+
+          # Remove generated adaptive-icon XML overrides so Android resolves the
+          # exact PNG files above rather than Flutter's generated placeholder artwork.
+          adaptive = res / "mipmap-anydpi-v26"
+          for filename in ("ic_launcher.xml", "ic_launcher_round.xml"):
+              target = adaptive / filename
+              if target.exists():
+                  target.unlink()
+
+          print(f"Copied original icon bytes from {source.name} into all mipmap densities.")
+          PY
 
               # Keep the Android Kotlin compiler compatible with current Flutter plugins.
               python3 - <<'PY'
@@ -233,9 +264,9 @@ jobs:
             echo "Created dist/$output_name"
           }
 
-          build_one apps/passenger client_taxi kz.baketaxi.client "Bake Taxi" ClientTaxi.apk
-          build_one apps/driver driver_taxi kz.baketaxi.driverapp "Bake Taxi Водитель" DriverTaxi.apk
-          build_one apps/owner_admin owner_admin kz.baketaxi.owneradmin "Bake Taxi Админ" OwnerAdmin.apk
+          build_one apps/passenger client_taxi kz.baketaxi.client "Bake Taxi" ClientTaxi.apk apps/passenger_icon.png
+          build_one apps/driver driver_taxi kz.baketaxi.driverapp "Bake Taxi Водитель" DriverTaxi.apk apps/driver_icon.png
+          build_one apps/owner_admin owner_admin kz.baketaxi.owneradmin "Bake Taxi Админ" OwnerAdmin.apk apps/admin_icon.png
 
           echo "===== APK files ====="
           ls -lh dist/*.apk
