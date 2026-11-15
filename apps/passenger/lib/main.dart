@@ -410,11 +410,11 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             ),
           ),
           DraggableScrollableSheet(
-            initialChildSize: .25,
-            minChildSize: .25,
+            initialChildSize: .45,
+            minChildSize: .45,
             maxChildSize: .82,
             snap: true,
-            snapSizes: const [.25, .82],
+            snapSizes: const [.45, .82],
             builder: (context, scrollController) => Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
