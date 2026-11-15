@@ -672,7 +672,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
   Widget _buildCategoryWindow() {
     final title = switch (_service) {
-      JibekServiceType.cityTaxi => 'Такси',
+      JibekServiceType.cityTaxi => _class,
       JibekServiceType.parcel => 'Доставка',
       JibekServiceType.freight => 'Грузовой',
       JibekServiceType.towTruck => 'Эвакуатор',
