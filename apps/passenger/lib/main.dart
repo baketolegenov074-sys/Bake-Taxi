@@ -871,7 +871,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         ),
 
         // Круглые кнопки карты располагаются непосредственно над панелью заказа.
-        Positioned(
+        if (!_showCategoryWindow) Positioned(
           left: 16, bottom: size.height * .405,
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
@@ -885,7 +885,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             ),
           ),
         ),
-        Positioned(
+        if (!_showCategoryWindow) Positioned(
           right: 16, bottom: size.height * .405,
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
