@@ -3,14 +3,12 @@ name: Bake Taxi - Build 3 APKs
 on:
   push:
     branches:
-      - main
-      - flutter-migration
+      - safe-rename-bake-taxi
     tags:
       - 'v*'
   pull_request:
     branches:
-      - main
-      - flutter-migration
+      - safe-rename-bake-taxi
   workflow_dispatch:
 
 permissions:
@@ -23,6 +21,14 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Verify selected branch
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/safe-rename-bake-taxi" ]]; then
+            echo "::error::Select the safe-rename-bake-taxi branch in Run workflow. No files were changed."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -277,8 +283,9 @@ jobs:
             echo "Created dist/$output_name"
           }
 
-          build_one apps/passenger client_taxi kz.baketaxi.client "Bake Taxi" ClientTaxi.apk ../../apps/brand_icon.png
-          build_one apps/driver driver_taxi kz.baketaxi.driverapp "Bake Taxi Водитель" DriverTaxi.apk ../../apps/driver_icon.png
+          # Use only the existing approved artwork; do not generate, replace, or commit image files.
+          build_one apps/passenger client_taxi kz.baketaxi.client "Bake Taxi" ClientTaxi.apk ../../apps/passenger_icon.png
+          build_one apps/driver driver_taxi kz.baketaxi.driverapp "Bake Taxi Водитель" DriverTaxi.apk
           build_one apps/owner_admin owner_admin kz.baketaxi.owneradmin "Bake Taxi Админ" OwnerAdmin.apk ../../apps/admin_icon.png
 
           echo "===== APK files ====="
