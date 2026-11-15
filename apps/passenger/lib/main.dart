@@ -710,26 +710,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             ),
           ),
       ]),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: BottomNavigationBar(
-          currentIndex: _selectedBottomTab,
-          onTap: _onBottomNavTap,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF172B3A),
-          unselectedItemColor: const Color(0xFF7B8492),
-          selectedFontSize: 11,
-          unselectedFontSize: 11,
-          selectedLabelStyle: const TextStyle(fontSize: 11, height: 1.2),
-          unselectedLabelStyle: const TextStyle(fontSize: 11, height: 1.2),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.local_taxi_rounded), label: 'Заказ'),
-            BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'Поездки'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline_rounded), label: 'Чат'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline_rounded), label: 'Профиль'),
-          ],
-        ),
-      ),
+      bottomNavigationBar: null,
     );
   }
 
