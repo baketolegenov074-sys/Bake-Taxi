@@ -110,7 +110,6 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
   @override
   void dispose() {
-    _map.dispose();
     _from.dispose();
     _to.dispose();
     _stop.dispose();
