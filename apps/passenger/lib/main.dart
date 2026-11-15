@@ -670,9 +670,18 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   Widget _serviceTab(String label, BakeTaxiServiceType service) => Padding(
     padding: const EdgeInsets.only(right: 8),
     child: ChoiceChip(
-      label: Text(label), selected: _service == service,
+      label: Text(label),
+      selected: _service == service,
       selectedColor: const Color(0xFFE5EBF2),
-      onSelected: (_) => setState(() => _service = service),
+      onSelected: (_) {
+        if (service == BakeTaxiServiceType.intercity) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const IntercityPage()),
+          );
+          return;
+        }
+        setState(() => _service = service);
+      },
     ),
   );
 
