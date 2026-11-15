@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - flutter-migration
+      - safe-rename-bake-taxi
   pull_request:
     branches:
       - flutter-migration
+      - safe-rename-bake-taxi
   workflow_dispatch:
 
 jobs:
@@ -34,6 +36,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.29.3'
           channel: stable
           cache: true
       - name: Install shared dependencies
@@ -54,6 +57,7 @@ jobs:
         app:
           - passenger
           - driver
+          - owner_admin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,4 +71,4 @@ jobs:
         run: flutter pub get
       - name: Analyze Dart code
         working-directory: apps/${{ matrix.app }}
-        run: flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
+        run: flutter analyze --no-pub
