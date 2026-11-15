@@ -883,12 +883,17 @@ class _DriverIncomingOrderPageState extends State<DriverIncomingOrderPage> {
             const Text('Стоимость заказа', style: TextStyle(color: Color(0xFF687386), fontWeight: FontWeight.w700)),
             Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Color(0xFF10243A))),
             const Divider(height: 22),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Сумма до комиссии'),
-              Text('$net ₸'.replaceFirst('$', ''), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF16834A))),
-            ]),
+            const Text('Сумма водителю', style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text('Комиссия 15% — $commission ₸'.replaceFirst('$', ''), style: const TextStyle(fontSize: 11, color: Color(0xFF687386))),
+            const Text(
+              'Будет рассчитана по тарифу владельца после подключения сервера',
+              style: TextStyle(fontSize: 13, color: Color(0xFF687386)),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Комиссия определяется настройками владельца',
+              style: TextStyle(fontSize: 11, color: Color(0xFF687386)),
+            ),
           ])),
         if (order.note != null && order.note!.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
