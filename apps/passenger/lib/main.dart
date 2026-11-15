@@ -705,13 +705,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                 Row(children: [
                   const Icon(Icons.location_on_rounded, color: Color(0xFFD83232), size: 27),
                   const SizedBox(width: 8),
-                  const Text('Куда:', style: TextStyle(fontSize: 16, color: Color(0xFF172033))),
+                  const Text('Куда:', style: TextStyle(fontSize: 14, color: Color(0xFF172033))),
                   const SizedBox(width: 7),
                   Expanded(child: TextField(
                     controller: _toController, focusNode: _toFocusNode,
                     onSubmitted: (_) => _searchDestination(),
                     onChanged: (_) => setState(() { _toPoint = null; _route = []; }),
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
                     decoration: const InputDecoration(
                       border: InputBorder.none, isDense: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 13),
@@ -745,7 +745,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           ),
         ),
         Positioned(
-          right: 16, bottom: size.height * .635,
+          right: 16, bottom: size.height * .255,
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
             child: IconButton(
@@ -780,7 +780,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Row(children: const [
-                          Icon(Icons.directions_car_filled_rounded, size: 30, color: Color(0xFF172033)),
+                          Icon(Icons.directions_car_filled_rounded, size: 21, color: Color(0xFF172033)),
                           SizedBox(width: 9),
                           Text('Выберите класс авто',
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF172033))),
