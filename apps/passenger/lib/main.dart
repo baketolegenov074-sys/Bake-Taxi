@@ -625,10 +625,10 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    // Keep the passenger order sheet visible whenever the keyboard is closed.
-    // Focus can remain on a TextField after the Android keyboard is dismissed,
-    // so focus alone must never hide the vehicle cards and order controls.
-    final editingAddress = MediaQuery.viewInsetsOf(context).bottom > 0;
+    // Keep the passenger order sheet mounted at all times. Some Android keyboards
+    // report a stale bottom inset after dismissal; using that inset to hide the sheet
+    // made the entire lower passenger UI disappear on the device.
+    const editingAddress = false;
     final markers = <Marker>[
       if (_fromPoint != null)
         Marker(point: _fromPoint!, width: 42, height: 42,
