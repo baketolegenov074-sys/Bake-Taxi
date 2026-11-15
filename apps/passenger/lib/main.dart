@@ -451,12 +451,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       'econom.png',
       'image_6681a04f.jpg',
       'business.png',
-      'image_1e1f99f5.jpg',
+      'minivan.png',
+      'intercity.png',
       'cargo.png',
       'delivery.png',
       'tow.png',
       'tire.png',
-      'intercity.png',
     ];
     return SizedBox(
       width: 118,
