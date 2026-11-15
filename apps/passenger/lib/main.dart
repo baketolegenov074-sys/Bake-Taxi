@@ -383,20 +383,16 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         (index == 6 && _service == JibekServiceType.parcel) ||
         (index == 7 && _service == JibekServiceType.towTruck) ||
         (index == 8 && _service == JibekServiceType.mobileTire);
-    const iconColors = [
-      Color(0xFFFFC107), Color(0xFFE9EEF5), Color(0xFF252A34),
-      Color(0xFF4169A1), Color(0xFF2563EB), Color(0xFF687386),
-      Color(0xFF8B5CF6), Color(0xFFDC4A3D), Color(0xFF0F9D83),
-    ];
     const prices = ['1 000 ₸', '1 200 ₸', '1 800 ₸', '2 500 ₸', 'от 5 000 ₸',
       'от 3 000 ₸', 'от 1 000 ₸', 'от 4 000 ₸', 'от 1 500 ₸'];
+    const assets = ['econom.png', 'comfort.png', 'business.png', 'minivan.png',
+      'intercity.png', 'cargo.png', 'delivery.png', 'tow.png', 'tire.png'];
     return GestureDetector(
       onTap: () => _selectOffer(index),
       child: Container(
-        width: 108,
-        height: 96,
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.fromLTRB(6, 6, 6, 5),
+        width: 112, height: 106,
+        margin: const EdgeInsets.only(right: 7),
+        padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFFFF9E5) : const Color(0xFFF5F6FA),
           border: Border.all(color: selected ? const Color(0xFFFFC928) : const Color(0xFFE3E7EF),
@@ -405,13 +401,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         ),
         child: Stack(children: [
           Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 25, color: iconColors[index]),
-            const SizedBox(height: 2),
+            Expanded(child: Image.asset('assets/cars/${assets[index]}', fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(icon, size: 30, color: const Color(0xFF687386)))),
             Text(title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-            const SizedBox(height: 2),
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10.5)),
             Text(prices[index], textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
+              style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
           ]),
           if (selected) const Positioned(right: 0, top: 0, child: CircleAvatar(
             radius: 8, backgroundColor: Color(0xFFFFC928),
@@ -421,7 +416,6 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       ),
     );
   }
-
   Widget _buildOfferOptions() {
     if (_service == JibekServiceType.cityTaxi) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -538,85 +532,62 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         ),
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(colors: [Color(0xFF0B1D4D), Color(0xFF15327A)]),
-                  borderRadius: BorderRadius.all(Radius.circular(22)),
-                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4))],
-                ),
-                child: Row(children: [
-                  ClipRRect(borderRadius: BorderRadius.circular(10),
-                    child: Image.asset('../passenger_icon.png', width: 46, height: 46, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.local_taxi_rounded, color: Color(0xFFFFD64A), size: 38))),
-                  const SizedBox(width: 10),
-                  const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Bake Taxi', style: TextStyle(color: Color(0xFFFFD64A), fontSize: 21,
-                      fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
-                    Text('Быстро. Надёжно. По-человечески!',
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                  ])),
-                  IconButton(onPressed: () => _message('Уведомления появятся после подключения сервера'),
-                    icon: const Icon(Icons.notifications_none_rounded, color: Colors.white)),
-                  IconButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Material(color: Colors.white, elevation: 4, borderRadius: BorderRadius.circular(14),
+                child: SizedBox(width: 44, height: 48, child: IconButton(
+                  tooltip: 'Меню',
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const PassengerProfilePage())),
-                    icon: const Icon(Icons.account_circle_rounded, color: Colors.white, size: 29)),
-                ]),
-              ),
-              const SizedBox(height: 9),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
+                  icon: const Icon(Icons.menu_rounded, color: Color(0xFF172B3A)),
+                ))),
+              const SizedBox(width: 8),
+              Expanded(child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(17),
                   boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 12)]),
                 child: Column(children: [
                   Row(children: [
-                    const Icon(Icons.location_on, color: Color(0xFF159447)),
-                    const SizedBox(width: 8),
-                    const Text('Откуда:', style: TextStyle(fontSize: 12)),
-                    Expanded(child: TextField(controller: _fromController,
-                      onSubmitted: (_) => _searchFrom(),
+                    const Icon(Icons.location_on, color: Color(0xFF159447), size: 20),
+                    const SizedBox(width: 6),
+                    const Text('Откуда', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    Expanded(child: TextField(controller: _fromController, onSubmitted: (_) => _searchFrom(),
                       onChanged: (_) => setState(() { _fromPoint = null; _route = []; }),
                       decoration: const InputDecoration(hintText: 'Определяем адрес по GPS',
-                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 10)))),
-                    IconButton(tooltip: 'Очистить адрес', onPressed: () {
-                      _fromController.clear();
-                      setState(() { _fromPoint = null; _route = []; });
-                    }, icon: const Icon(Icons.close, size: 19)),
-                    IconButton(tooltip: 'Моё местоположение', onPressed: _locating ? null : _findMe,
-                      icon: const Icon(Icons.my_location_rounded, color: Color(0xFF126B45))),
+                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 9)))),
+                    IconButton(padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 30, height: 34),
+                      tooltip: 'Моё местоположение', onPressed: _locating ? null : _findMe,
+                      icon: const Icon(Icons.my_location_rounded, size: 18, color: Color(0xFF126B45))),
                   ]),
                   const Divider(height: 1),
                   Row(children: [
-                    const Icon(Icons.location_on, color: Color(0xFFD32F2F)),
-                    const SizedBox(width: 8),
-                    const Text('Куда:', style: TextStyle(fontSize: 12)),
-                    Expanded(child: TextField(controller: _toController,
-                      onSubmitted: (_) => _searchDestination(),
+                    const Icon(Icons.location_on, color: Color(0xFFD32F2F), size: 20),
+                    const SizedBox(width: 6),
+                    const Text('Куда', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    Expanded(child: TextField(controller: _toController, onSubmitted: (_) => _searchDestination(),
                       onChanged: (_) => setState(() { _toPoint = null; _route = []; }),
                       decoration: const InputDecoration(hintText: 'Выберите адрес назначения',
-                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 10)))),
-                    IconButton(tooltip: 'Промежуточная остановка', onPressed: () => setState(() => _addStop = !_addStop),
-                      icon: const Icon(Icons.add, size: 23)),
+                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 9)))),
+                    IconButton(padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 30, height: 34),
+                      tooltip: 'Промежуточная остановка', onPressed: () => setState(() => _addStop = !_addStop),
+                      icon: const Icon(Icons.add, size: 21)),
                   ]),
                   if (_addStop) _placeField(Icons.more_horiz, 'Промежуточная остановка', _stopController,
                     onSubmitted: (_) => _searchStop()),
                 ]),
-              ),
+              )),
             ]),
           ),
         ),
         DraggableScrollableSheet(
-          initialChildSize: .70, minChildSize: .60, maxChildSize: .90,
-          snap: true, snapSizes: const [.70, .90],
+          initialChildSize: .43, minChildSize: .38, maxChildSize: .78,
+          snap: true, snapSizes: const [.43, .78],
           builder: (context, scrollController) => Container(
             decoration: const BoxDecoration(color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
               boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, -4))]),
             child: ListView(controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 11, 16, 28),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
               children: [
                 Center(child: Container(width: 42, height: 4,
                   decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
@@ -627,7 +598,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                   Text('Выберите тариф или услугу', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                 ]),
                 const SizedBox(height: 10),
-                SizedBox(height: 96, child: ListView.builder(
+                SizedBox(height: 106, child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: 9,
                   itemBuilder: (context, index) {
