@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:jibek_shared/jibek_shared.dart';
 import 'package:latlong2/latlong.dart';
+import 'driver_navigator.dart';
 import 'permissions/startup_permissions.dart';
 import 'driver_profile_page.dart';
 import 'driver_search_settings.dart';
@@ -588,6 +589,28 @@ class _DriverMapPageState extends State<DriverMapPage> {
           if (order.note != null && order.note!.trim().isNotEmpty)
             Text('Комментарий: ' + order.note!,
                 style: const TextStyle(color: Color(0xFF687386))),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: FilledButton.icon(
+              onPressed: () => openDriverNavigation(
+                context,
+                order.status == JibekOrderStatus.inProgress
+                    ? order.destination
+                    : order.pickup,
+              ),
+              icon: const Icon(Icons.navigation_rounded, size: 23),
+              label: const Text('Навигатор', style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w900)),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFFFD400),
+                foregroundColor: const Color(0xFF10243A),
+                shape: const StadiumBorder(),
+                elevation: 0,
+              ),
+            ),
+          ),
           if (next != null) ...[
             const SizedBox(height: 10),
             SizedBox(width: double.infinity, child: FilledButton(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'driver_navigator.dart';
 
 class DriverProfilePage extends StatelessWidget {
   const DriverProfilePage({super.key});
@@ -47,6 +48,8 @@ class DriverProfilePage extends StatelessWidget {
           const _ProfileRow(icon: Icons.local_taxi_outlined, title: 'Парк', subtitle: 'Информация о таксопарке'),
           const _ProfileRow(icon: Icons.tune_rounded, title: 'Тарифы и опции', subtitle: 'Выбор доступных заказов'),
           const _ProfileRow(icon: Icons.payments_outlined, title: 'Оплата', subtitle: 'Наличные, карта или Kaspi'),
+          const SizedBox(height: 8),
+          const DriverNavigatorPreferenceTile(),
           const SizedBox(height: 18),
           const _SectionTitle('Мой транспорт'),
           Container(
