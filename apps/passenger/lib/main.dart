@@ -21,7 +21,7 @@ class JibekPassengerApp extends StatelessWidget {
         title: 'Bake Taxi',
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
-        home: const PassengerHomePage(),
+        home: const PassengerMapPage(),
       );
 }
 
