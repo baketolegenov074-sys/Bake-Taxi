@@ -403,14 +403,29 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           longitude: _toPoint!.longitude,
           address: _to.text,
         ),
-        stops: const [],
+        stops: _addStop && _stopPoint != null
+            ? [
+                JibekGeoPoint(
+                  latitude: _stopPoint!.latitude,
+                  longitude: _stopPoint!.longitude,
+                  address: _stop.text,
+                ),
+              ]
+            : const [],
         createdAt: DateTime.now(),
         vehicleClass: _service == JibekServiceType.cityTaxi ? _vehicleClass : null,
+        note: _note.text.trim().isEmpty ? null : _note.text.trim(),
         priceKzt: _fare,
         boostCount: 0,
       ));
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('jibek_passenger_active_order_id', order.id);
+      final history = prefs.getStringList('bake_taxi_order_history') ?? <String>[];
+      history.insert(0, jsonEncode(order.toJson()));
+      await prefs.setStringList(
+        'bake_taxi_order_history',
+        history.take(30).toList(growable: false),
+      );
       _message('Заказ отправлен: ${order.id}');
     } catch (error) {
       _message('Не удалось отправить заказ: $error');
@@ -670,6 +685,33 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     ],
                   ),
                 ),
+                if (_service != JibekServiceType.cityTaxi) ...[
+                  const SizedBox(height: 5),
+                  TextField(
+                    controller: _note,
+                    minLines: 1,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: const Color(0xFFF5F6F8),
+                      hintText: switch (_service) {
+                        JibekServiceType.parcel => 'Что нужно доставить?',
+                        JibekServiceType.freight => 'Опишите груз и адрес доставки',
+                        JibekServiceType.towTruck => 'Автомобиль и характер поломки',
+                        JibekServiceType.mobileTire => 'Размер колёс и какая нужна помощь',
+                        JibekServiceType.intercity => 'Комментарий к поездке',
+                        JibekServiceType.cityTaxi => 'Комментарий',
+                      },
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                    ),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 5),
                 Row(children: [
                   const Expanded(
