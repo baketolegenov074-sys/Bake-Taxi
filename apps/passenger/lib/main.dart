@@ -1184,15 +1184,17 @@ class BakeServicesPage extends StatelessWidget {
       const Text('Помощь на дороге и для дома', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
       const SizedBox(height: 12),
       _service('Эвакуатор', Icons.car_crash_rounded, JibekServiceType.towTruck, context),
-      _service('Шиномонтаж', Icons.tire_repair_rounded, JibekServiceType.mobileTire, context),
+      _service('Шиномонтаж', Icons.tire_repair_rounded, JibekServiceType.mobileTire, context, asset: 'assets/cars/tire.png'),
       _service('Автоэлектрик', Icons.electrical_services_rounded, JibekServiceType.mobileTire, context),
       _service('Сантехник', Icons.plumbing_rounded, JibekServiceType.mobileTire, context),
       _service('Электрик', Icons.bolt_rounded, JibekServiceType.mobileTire, context),
     ]),
   );
-  Widget _service(String title, IconData icon, JibekServiceType type, BuildContext context) => Card(
+  Widget _service(String title, IconData icon, JibekServiceType type, BuildContext context, {String? asset}) => Card(
     color: Colors.white, elevation: 0, margin: const EdgeInsets.only(bottom: 9),
-    child: ListTile(leading: CircleAvatar(backgroundColor: const Color(0xFFFFF0C2), child: Icon(icon, color: const Color(0xFF172B3A))),
+    child: ListTile(leading: asset == null
+        ? CircleAvatar(backgroundColor: const Color(0xFFFFF0C2), child: Icon(icon, color: const Color(0xFF172B3A)))
+        : SizedBox(width: 56, height: 56, child: Image.asset(asset, fit: BoxFit.contain)),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PassengerMapPage(initialService: type, initialNote: title)))),
