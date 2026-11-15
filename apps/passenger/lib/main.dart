@@ -670,9 +670,18 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   Widget _serviceTab(String label, BakeTaxiServiceType service) => Padding(
     padding: const EdgeInsets.only(right: 8),
     child: ChoiceChip(
-      label: Text(label),
+      showCheckmark: false,
+      label: Text(label, style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+        color: _service == service ? const Color(0xFF202833) : const Color(0xFF65707C),
+      )),
       selected: _service == service,
-      selectedColor: const Color(0xFFE5EBF2),
+      selectedColor: const Color(0xFFFFD43B),
+      backgroundColor: const Color(0xFFF3F4F6),
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       onSelected: (_) {
         if (service == BakeTaxiServiceType.intercity) {
           Navigator.of(context).push(
@@ -690,11 +699,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     return GestureDetector(
       onTap: () => setState(() => _class = label),
       child: Container(
-        width: 142, margin: const EdgeInsets.only(right: 9), padding: const EdgeInsets.all(10),
+        width: 142, margin: const EdgeInsets.only(right: 9), padding: const EdgeInsets.all(11),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFEAF0F6) : Colors.white,
-          border: Border.all(color: selected ? const Color(0xFFE3BD70) : const Color(0xFFE1E6EC), width: selected ? 2 : 1),
-          borderRadius: BorderRadius.circular(16),
+          color: selected ? const Color(0xFFFFF8DE) : Colors.white,
+          border: Border.all(color: selected ? const Color(0xFFFFC928) : const Color(0xFFE9EBEF), width: selected ? 2 : 1),
+          borderRadius: BorderRadius.circular(17),
+          boxShadow: selected ? const [BoxShadow(color: Color(0x18D6A900), blurRadius: 9, offset: Offset(0, 3))] : const [],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Icon(icon, size: 30, color: const Color(0xFF10243A)),
@@ -974,13 +984,26 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       onSubmitted: onSubmitted,
       onChanged: onChanged,
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: const Color(0xFF10243A)),
+        filled: true,
+        fillColor: const Color(0xFFF4F5F7),
+        prefixIcon: Icon(icon, color: icon == Icons.location_on_rounded
+            ? const Color(0xFFE34B4B)
+            : const Color(0xFF222B35), size: 20),
         hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF8A929C), fontSize: 14),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFFFCC33), width: 1.5),
+        ),
         suffixIcon: controller.text.isEmpty ? null : IconButton(
           tooltip: 'Очистить адрес',
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(Icons.close_rounded, size: 18),
           onPressed: () { controller.clear(); onChanged?.call(''); },
         ),
       ),
