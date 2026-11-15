@@ -80,8 +80,8 @@ class _BakeTaxiSplashState extends State<BakeTaxiSplash>
                           child: ScaleTransition(
                             scale: _logoScale,
                             child: Container(
-                              width: 184,
-                              height: 184,
+                              width: 130,
+                              height: 130,
                               padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF111D3B),
@@ -104,8 +104,8 @@ class _BakeTaxiSplashState extends State<BakeTaxiSplash>
                                 child: Image.asset(widget.logoAsset,
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) => const Icon(
-                                    Icons.local_taxi_rounded,
-                                    size: 92, color: Color(0xFFFFD36A),
+                                    Icons.image_not_supported_outlined,
+                                    size: 52, color: Color(0xFFFFD36A),
                                   ),
                                 ),
                               ),
