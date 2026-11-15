@@ -706,10 +706,15 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Icon(icon, size: 32, color: const Color(0xFF172B3A)),
+                IconButton(
+                  tooltip: 'Назад',
+                  onPressed: _closeCategoryWindow,
+                  icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF172B3A)),
+                ),
+                Icon(icon, size: 30, color: const Color(0xFF172B3A)),
                 const SizedBox(width: 10),
                 Expanded(child: Text(title,
-                  style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Color(0xFF171717)))),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF171717)))),
               ]),
               const SizedBox(height: 8),
               Material(
@@ -894,7 +899,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
         // Заказная панель и нижние четыре блока закреплены внизу экрана.
         Positioned(
-          left: 0, right: 0, top: size.height * .55, bottom: 0,
+          left: 0, right: 0, top: _showCategoryWindow ? 0 : size.height * .55, bottom: 0,
           child: _showCategoryWindow
               ? _buildCategoryWindow()
               : Container(
