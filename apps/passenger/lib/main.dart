@@ -513,6 +513,54 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
+  Widget _passengerOrderPanel(JibekOrderRequest order) {
+    final completed = order.status == JibekOrderStatus.completed;
+    final cancelled = order.status == JibekOrderStatus.cancelled;
+    final active = !completed && !cancelled;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: completed ? const Color(0xFFEAF7EE) : const Color(0xFFF3F6FB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: completed ? const Color(0xFFB9E2C5) : const Color(0xFFE0E6EF)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(completed ? Icons.check_circle_rounded : cancelled ? Icons.cancel_rounded : Icons.local_taxi_rounded,
+            color: completed ? const Color(0xFF21864B) : const Color(0xFF173B6C), size: 22),
+          const SizedBox(width: 7),
+          Expanded(child: Text(completed ? 'Поездка завершена!' : cancelled ? 'Заказ отменён' : 'Вы в пути / заказ активен',
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))),
+          IconButton(visualDensity: VisualDensity.compact, tooltip: 'Обновить статус',
+            onPressed: _refreshingOrder ? null : _refreshOrder,
+            icon: _refreshingOrder ? const SizedBox(width: 17,height: 17,child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.refresh_rounded)),
+        ]),
+        Text('Откуда: ${order.pickup.address ?? 'Точка на карте'}', maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 11)),
+        Text('Куда: ${order.destination.address ?? 'Точка на карте'}', maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 11)),
+        const SizedBox(height: 7),
+        if (completed) ...[
+          Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: Color(0xFF21864B))),
+          const Text('Чек и детали поездки доступны в истории заказов.', style: TextStyle(fontSize: 11, color: Color(0xFF687386))),
+        ] else if (active) ...[
+          const Text('Водитель / автомобиль появятся после назначения в системе.', style: TextStyle(fontSize: 11, color: Color(0xFF687386))),
+          const SizedBox(height: 6),
+          Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+          Row(children: [
+            Expanded(child: OutlinedButton.icon(
+              onPressed: () => _message('Чат и звонок станут доступны после подключения связи с водителем.'),
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16), label: const Text('Чат', style: TextStyle(fontSize: 11)))),
+            const SizedBox(width: 6),
+            Expanded(child: OutlinedButton.icon(
+              onPressed: _cancellingOrder || !_canCancelOrder(order.status) ? null : _cancelOrder,
+              icon: const Icon(Icons.close_rounded, size: 16), label: const Text('Отменить', style: TextStyle(fontSize: 11)))),
+          ]),
+        ],
+      ]),
+    );
+  }
+
   Widget _quickTile(BuildContext context, String title, IconData icon, Color tint, VoidCallback onTap) =>
       Material(
         color: tint,
@@ -694,10 +742,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       ),
                     ]),
                     if (_createdOrder != null) ...[
-                      const SizedBox(height: 5),
-                      Text('Заказ ${_createdOrder!.id} • ${_statusLabel(_createdOrder!.status)}',
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 9),
+                      _passengerOrderPanel(_createdOrder!),
                     ],
                     const SizedBox(height: 6),
                     SizedBox(height: 48, width: double.infinity, child: FilledButton(
