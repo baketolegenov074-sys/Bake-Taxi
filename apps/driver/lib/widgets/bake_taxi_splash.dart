@@ -82,10 +82,10 @@ class _BakeTaxiSplashState extends State<BakeTaxiSplash>
                             child: Container(
                               width: 130,
                               height: 130,
-                              padding: const EdgeInsets.all(7),
+                              padding: EdgeInsets.zero,
                               decoration: BoxDecoration(
                                 color: const Color(0xFF111D3B),
-                                borderRadius: BorderRadius.circular(34),
+                                borderRadius: BorderRadius.circular(28),
                                 boxShadow: [
                                   BoxShadow(
                                     color: const Color(0xFFFFD36A).withOpacity(0.34),
@@ -103,10 +103,7 @@ class _BakeTaxiSplashState extends State<BakeTaxiSplash>
                                 borderRadius: BorderRadius.circular(28),
                                 child: Image.asset(widget.logoAsset,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(
-                                    Icons.image_not_supported_outlined,
-                                    size: 52, color: Color(0xFFFFD36A),
-                                  ),
+                                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                 ),
                               ),
                             ),
