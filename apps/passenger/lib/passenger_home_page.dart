@@ -22,6 +22,7 @@ class PassengerHomePage extends StatefulWidget {
 }
 
 class _PassengerHomePageState extends State<PassengerHomePage> {
+  int _selectedTab = 0;
   String _currentAddress = '';
   bool _loadingAddress = false;
 
@@ -106,85 +107,122 @@ class _PassengerHomePageState extends State<PassengerHomePage> {
     drawer: const _PassengerDrawer(),
     body: SafeArea(
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 10, 18, 28),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
         children: [
           Row(children: [
             Builder(builder: (drawerContext) => IconButton(
               onPressed: () => Scaffold.of(drawerContext).openDrawer(),
-              icon: const Icon(Icons.menu_rounded, size: 28),
+              icon: const Icon(Icons.menu_rounded, size: 26, color: _ink),
             )),
             const Spacer(),
-            const Text('Bake Taxi', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: .3, color: _ink)),
+            const Text('Баке Такси', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: _ink)),
             const Spacer(),
-            IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PassengerProfilePage())), icon: const Icon(Icons.account_circle_outlined, size: 28)),
-          ]),
-          InkWell(
-            onTap: _loadingAddress ? null : _loadCurrentAddress,
-            borderRadius: BorderRadius.circular(10),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(children: [
-                const Icon(Icons.location_on_rounded, color: Color(0xFFB58A16), size: 18),
-                const SizedBox(width: 5),
-                Expanded(child: Text(
-                  _loadingAddress ? 'Определяем адрес…' : (_currentAddress.isEmpty ? 'Нажмите, чтобы определить адрес' : _currentAddress),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _muted, fontSize: 12),
-                )),
-                if (_loadingAddress)
-                  const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                else
-                  const Icon(Icons.refresh_rounded, size: 16, color: _muted),
-              ]),
+            IconButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PassengerProfilePage())),
+              icon: const Icon(Icons.notifications_none_rounded, size: 26, color: _ink),
             ),
-          ),
-          const SizedBox(height: 20),
-          const Text('Куда отправимся?', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: _ink)),
-          const SizedBox(height: 14),
-          GridView.count(
-            crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.45,
-            children: [
-              _ServiceCard(title: 'Такси', subtitle: 'от 4 мин', icon: Icons.local_taxi_rounded, color: const Color(0xFFEAF0F6), onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
-              _ServiceCard(title: 'Доставка', subtitle: 'Посылка', icon: Icons.inventory_2_rounded, color: const Color(0xFFF2F4F7), onTap: () => _open(context, BakeTaxiServiceType.parcel)),
-              _ServiceCard(title: 'Межгород', subtitle: 'В другой город', icon: Icons.route_rounded, color: const Color(0xFFF2F4F7), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IntercityPage()))),
-              _ServiceCard(title: 'Грузовой', subtitle: 'Перевозка вещей', icon: Icons.local_shipping_rounded, color: const Color(0xFFEAF0F6), onTap: () => _open(context, BakeTaxiServiceType.freight)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text('Ещё услуги', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: _ink)),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: _SmallService(icon: Icons.car_crash_rounded, title: 'Эвакуатор', onTap: () => _open(context, BakeTaxiServiceType.towTruck))),
-            Expanded(child: _SmallService(icon: Icons.tire_repair_rounded, title: 'Шиномонтаж', onTap: () => _open(context, BakeTaxiServiceType.mobileTire))),
-            Expanded(child: _SmallService(icon: Icons.airline_seat_recline_extra_rounded, title: 'Комфорт / Бизнес', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi))),
           ]),
-          const SizedBox(height: 22),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF142B42), Color(0xFF31536B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('ШЫМКЕНТ', style: TextStyle(color: Color(0xFFFFD44D), fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+              const SizedBox(height: 6),
+              const Text('Быстро. Удобно. Надёжно.', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: _loadingAddress ? null : _loadCurrentAddress,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: .14), borderRadius: BorderRadius.circular(14)),
+                  child: Row(children: [
+                    const Icon(Icons.location_on_rounded, color: Color(0xFFFFD44D), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(
+                      _loadingAddress ? 'Определяем адрес…' : (_currentAddress.isEmpty ? 'Определить моё местоположение' : _currentAddress),
+                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    )),
+                    if (_loadingAddress)
+                      const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    else
+                      const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
+                  ]),
+                ),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 18),
           Material(
-            color: Colors.white, borderRadius: BorderRadius.circular(18),
+            color: _surface,
+            borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: () => _open(context, BakeTaxiServiceType.cityTaxi),
               child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 16),
                 child: Row(children: [
                   Icon(Icons.search_rounded, color: _ink, size: 25),
-                  SizedBox(width: 12),
-                  Expanded(child: Text('Куда едем?', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: _ink))),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 16, color: _muted),
+                  SizedBox(width: 11),
+                  Expanded(child: Text('Откуда и куда едем?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _ink))),
+                  Icon(Icons.arrow_forward_ios_rounded, size: 15, color: _muted),
                 ]),
               ),
             ),
           ),
+          const SizedBox(height: 20),
+          const Text('Услуги', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: _ink)),
+          const SizedBox(height: 11),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1.48,
+            children: [
+              _ServiceCard(title: 'Такси', subtitle: 'По городу', icon: Icons.local_taxi_rounded, color: const Color(0xFFFFE58A), onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
+              _ServiceCard(title: 'Доставка', subtitle: 'Посылка', icon: Icons.inventory_2_rounded, color: const Color(0xFFF2F4F7), onTap: () => _open(context, BakeTaxiServiceType.parcel)),
+              _ServiceCard(title: 'Спецтехника', subtitle: 'Эвакуатор и шиномонтаж', icon: Icons.car_repair_rounded, color: const Color(0xFFF2F4F7), onTap: () => _open(context, BakeTaxiServiceType.towTruck)),
+              _ServiceCard(title: 'Межгород', subtitle: 'В другой город', icon: Icons.route_rounded, color: const Color(0xFFF2F4F7), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IntercityPage()))),
+            ],
+          ),
           const SizedBox(height: 18),
-          const Text('Популярное в Шымкенте', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: _ink)),
-          const SizedBox(height: 6),
+          const Text('Популярные направления', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: _ink)),
+          const SizedBox(height: 5),
           _AddressRow(icon: Icons.flight_rounded, title: 'Аэропорт Шымкент', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
           _AddressRow(icon: Icons.train_rounded, title: 'Железнодорожный вокзал', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
           _AddressRow(icon: Icons.shopping_bag_outlined, title: 'ТРЦ Shymkent Plaza', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
         ],
       ),
+    ),
+    bottomNavigationBar: NavigationBar(
+      height: 66,
+      backgroundColor: Colors.white,
+      indicatorColor: const Color(0xFFFFE58A),
+      selectedIndex: _selectedTab,
+      onDestinationSelected: (index) {
+        setState(() => _selectedTab = index);
+        if (index == 1 || index == 2) {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const PassengerProfilePage()));
+        } else if (index == 3) {
+          Scaffold.of(context).openDrawer();
+        }
+      },
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Главная'),
+        NavigationDestination(icon: Icon(Icons.receipt_long_rounded), label: 'Заказы'),
+        NavigationDestination(icon: Icon(Icons.person_rounded), label: 'Профиль'),
+        NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Ещё'),
+      ],
     ),
   );
 }
