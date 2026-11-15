@@ -551,16 +551,30 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       ]),
                     ),
                   const SizedBox(height: 8),
-                  const Text('Услуга', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
+                  const Text('Услуги', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
                   const SizedBox(height: 8),
                   SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
                     _serviceTab('Такси', BakeTaxiServiceType.cityTaxi),
+                    _serviceTab('Доставка', BakeTaxiServiceType.parcel),
+                    _serviceTab('Спецтехника', BakeTaxiServiceType.towTruck),
                     _serviceTab('Межгород', BakeTaxiServiceType.intercity),
-                    _serviceTab('Посылка', BakeTaxiServiceType.parcel),
-                    _serviceTab('Грузовой', BakeTaxiServiceType.freight),
-                    _serviceTab('Эвакуатор', BakeTaxiServiceType.towTruck),
-                    _serviceTab('Шиномонтаж', BakeTaxiServiceType.mobileTire),
                   ])),
+                  if (_service == BakeTaxiServiceType.parcel || _service == BakeTaxiServiceType.freight) ...[
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      Expanded(child: _serviceTab('Посылка', BakeTaxiServiceType.parcel)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _serviceTab('Грузовой', BakeTaxiServiceType.freight)),
+                    ]),
+                  ],
+                  if (_service == BakeTaxiServiceType.towTruck || _service == BakeTaxiServiceType.mobileTire) ...[
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      Expanded(child: _serviceTab('Эвакуатор', BakeTaxiServiceType.towTruck)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _serviceTab('Шиномонтаж', BakeTaxiServiceType.mobileTire)),
+                    ]),
+                  ],
                   if (_service == BakeTaxiServiceType.cityTaxi) ...[
                     const SizedBox(height: 12),
                     const Text('Выберите тариф', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Color(0xFF172B3A))),
