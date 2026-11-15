@@ -628,7 +628,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     // Keep the passenger order sheet mounted at all times. Some Android keyboards
     // report a stale bottom inset after dismissal; using that inset to hide the sheet
     // made the entire lower passenger UI disappear on the device.
-    const editingAddress = false;
+    const editingAddress = false; // Always keep the order sheet visible on Android.
     final markers = <Marker>[
       if (_fromPoint != null)
         Marker(point: _fromPoint!, width: 42, height: 42,
