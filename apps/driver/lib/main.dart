@@ -18,6 +18,13 @@ class JibekDriverApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
+        builder: (context, child) {
+          final systemScale = MediaQuery.textScalerOf(context).scale(1.0).clamp(0.85, 1.05);
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(systemScale)),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         title: 'Bake Taxi Водитель',
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
