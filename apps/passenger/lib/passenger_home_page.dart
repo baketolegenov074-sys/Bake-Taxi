@@ -518,19 +518,6 @@ class _ServiceCard extends StatelessWidget {
   );
 }
 
-class _SmallService extends StatelessWidget {
-  const _SmallService({required this.icon, required this.title, required this.onTap});
-  final IconData icon; final String title; final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: Column(children: [
-      CircleAvatar(radius: 25, backgroundColor: Colors.white, child: Icon(icon, color: _ink, size: 24)),
-      const SizedBox(height: 7),
-      Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _ink)),
-    ]),
-  );
-}
 
 class _AddressRow extends StatelessWidget {
   const _AddressRow({required this.icon, required this.title, required this.onTap});
