@@ -61,6 +61,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   final FocusNode _fromFocusNode = FocusNode();
   final FocusNode _toFocusNode = FocusNode();
   bool _addressFieldFocused = false;
+  int _selectedBottomTab = 0;
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _stopController = TextEditingController();
   bool _addStop = false;
@@ -395,6 +396,19 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     }
   }
 
+  void _onBottomNavTap(int index) {
+    setState(() => _selectedBottomTab = index);
+    if (index == 1 || index == 3) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => const PassengerProfilePage(),
+      ));
+    } else if (index == 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Чат с поддержкой будет подключён отдельно')),
+      );
+    }
+  }
+
   Widget _offerCard(int index, String title, String subtitle, IconData icon) {
     final selected = (_service == JibekServiceType.cityTaxi && index < 4 && _class == title) ||
         (index == 4 && _service == JibekServiceType.intercity) ||
@@ -409,9 +423,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     return GestureDetector(
       onTap: () => _selectOffer(index),
       child: Container(
-        width: 112, height: 106,
-        margin: const EdgeInsets.only(right: 7),
-        padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
+        width: 96, height: 88,
+        margin: const EdgeInsets.only(right: 5),
+        padding: const EdgeInsets.fromLTRB(4, 3, 4, 3),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFFFF9E5) : const Color(0xFFF5F6FA),
           border: Border.all(color: selected ? const Color(0xFFFFC928) : const Color(0xFFE3E7EF),
@@ -548,7 +562,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
     return Scaffold(
       body: Stack(children: [
-        FlutterMap(
+        Positioned.fill(
+          child: FlutterMap(
           mapController: _mapController,
           options: MapOptions(initialCenter: _shymkent, initialZoom: 13, onTap: _selectMapPoint),
           children: [
@@ -560,6 +575,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             MarkerLayer(markers: markers),
             const RichAttributionWidget(attributions: [TextSourceAttribution('© OpenStreetMap contributors')]),
           ],
+        ),
         ),
         SafeArea(
           child: Padding(
@@ -628,7 +644,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     Center(child: Container(width: 38, height: 4,
                       decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
                     const SizedBox(height: 7),
-                    SizedBox(height: 112, child: ListView.builder(
+                    SizedBox(height: 88, child: ListView.builder(
+                      padding: const EdgeInsets.only(left: 12, right: 4),
                       scrollDirection: Axis.horizontal,
                       itemCount: 9,
                       itemBuilder: (context, index) {
@@ -693,6 +710,26 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             ),
           ),
       ]),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          currentIndex: _selectedBottomTab,
+          onTap: _onBottomNavTap,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: const Color(0xFF172B3A),
+          unselectedItemColor: const Color(0xFF7B8492),
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
+          selectedLabelStyle: const TextStyle(fontSize: 11, height: 1.2),
+          unselectedLabelStyle: const TextStyle(fontSize: 11, height: 1.2),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.local_taxi_rounded), label: 'Заказ'),
+            BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'Поездки'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline_rounded), label: 'Чат'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outline_rounded), label: 'Профиль'),
+          ],
+        ),
+      ),
     );
   }
 
