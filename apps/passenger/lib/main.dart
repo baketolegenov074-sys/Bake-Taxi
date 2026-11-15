@@ -373,7 +373,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                   Polyline(
                     points: _route,
                     strokeWidth: 5,
-                    color: const Color(0xFF2463D3),
+                    color: const Color(0xFF10243A),
                     borderStrokeWidth: 1.5,
                     borderColor: Colors.white,
                   ),
@@ -432,7 +432,11 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                   Row(children: [
                     Expanded(child: _placeField(Icons.radio_button_checked, 'Откуда', _fromController, onSubmitted: (_) => _searchFrom(), onChanged: (_) { setState(() { _fromPoint = null; _route = []; _distanceLabel = null; _durationLabel = null; }); })),
                     const SizedBox(width: 6),
-                    OutlinedButton(onPressed: () => _message('Укажите номер подъезда в комментарии к заказу'), style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 10)), child: const Text('Подъезд')),
+                    OutlinedButton(
+                      onPressed: () => _message('Укажите номер подъезда в комментарии к заказу'),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 10)),
+                      child: const Text('Подъезд'),
+                    ),
                   ]),
                   const SizedBox(height: 9),
                   _placeField(Icons.location_on_rounded, 'Куда', _toController, onSubmitted: (_) => _searchDestination(), onChanged: (_) { setState(() { _toPoint = null; _route = []; _distanceLabel = null; _durationLabel = null; }); }),
@@ -917,3 +921,60 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       _message('Заявка отменена');
     } on BakeTaxiApiException catch (e) {
       _message('Не удалось отменить заявку: ${e.message}');
+    } catch (_) {
+      _message('Нет связи с сервером. Повторите позже.');
+    } finally {
+      repository.close();
+      if (mounted) setState(() => _cancellingOrder = false);
+    }
+  }
+
+  Future<void> _searchFrom() async {
+    final query = _fromController.text.trim();
+    if (query.isEmpty) {
+      await _findMe();
+      return;
+    }
+    setState(() => _searching = true);
+    try {
+      final result = await _geocode('$query, Шымкент, Казахстан');
+      if (result == null) {
+        _message('Адрес отправления не найден');
+        return;
+      }
+      setState(() => _fromPoint = result.point);
+      _mapController.move(result.point, 14);
+      if (_toPoint != null) await _buildRoute();
+    } catch (e) {
+      _message('Ошибка поиска адреса: $e');
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
+
+  Widget _placeField(
+    IconData icon,
+    String hint,
+    TextEditingController controller, {
+    required ValueChanged<String> onSubmitted,
+    ValueChanged<String>? onChanged,
+  }) {
+    return TextField(
+      controller: controller,
+      textInputAction: TextInputAction.search,
+      onSubmitted: onSubmitted,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: const Color(0xFF10243A)),
+        hintText: hint,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+        suffixIcon: controller.text.isEmpty ? null : IconButton(
+          tooltip: 'Очистить адрес',
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () { controller.clear(); onChanged?.call(''); },
+        ),
+      ),
+    );
+  }
+}
