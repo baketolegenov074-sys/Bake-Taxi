@@ -693,11 +693,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       ('Алаш', 'Темирлановское ш., 198/7', '12 мин'),
     ];
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, -4))],
-      ),
+      // Прозрачная страница категории: карта остаётся видимой под содержимым.
+      color: Colors.transparent,
       child: SafeArea(
         top: false,
         child: Padding(
