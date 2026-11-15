@@ -410,7 +410,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     if (_service == JibekServiceType.cityTaxi) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: _metricTile(Icons.access_time_rounded, _durationLabel ?? 'от 2 мин', 'Время подачи')),
+          Expanded(child: _metricTile(Icons.access_time_rounded, 'от 2 мин', 'Время подачи')),
           const SizedBox(width: 7),
           Expanded(child: _metricTile(Icons.route_rounded, _distanceLabel ?? '— км', 'Расстояние')),
         ]),
