@@ -53,6 +53,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   String _paymentMethod = 'Наличные';
   bool _childSeat = false;
   bool _needMovers = false;
+  bool _boostSelected = false;
+  int _intercitySeats = 1;
+  String _intercityCity = 'Туркестан';
   final LatLng _shymkent = const LatLng(42.3154, 69.5869);
 
   LatLng? _fromPoint;
@@ -329,348 +332,371 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     if (_fromPoint != null) _buildRoute();
   }
 
+  void _selectOffer(int index) {
+    setState(() {
+      switch (index) {
+        case 0: _service = JibekServiceType.cityTaxi; _class = 'Эконом'; break;
+        case 1: _service = JibekServiceType.cityTaxi; _class = 'Комфорт'; break;
+        case 2: _service = JibekServiceType.cityTaxi; _class = 'Бизнес'; break;
+        case 3: _service = JibekServiceType.cityTaxi; _class = 'Минивэн'; break;
+        case 4: _service = JibekServiceType.intercity; break;
+        case 5: _service = JibekServiceType.freight; break;
+        case 6: _service = JibekServiceType.parcel; break;
+        case 7: _service = JibekServiceType.towTruck; break;
+        case 8: _service = JibekServiceType.mobileTire; break;
+      }
+    });
+  }
+
+  int get _estimatedTaxiFare {
+    switch (_class) {
+      case 'Комфорт': return 1200;
+      case 'Бизнес': return 1800;
+      case 'Минивэн': return 2500;
+      default: return 1000;
+    }
+  }
+
+  String get _orderButtonLabel {
+    if (_searching || _sendingOrder) return 'Подождите…';
+    switch (_service) {
+      case JibekServiceType.cityTaxi: return 'Заказать такси';
+      case JibekServiceType.intercity: return 'Заказать межгород';
+      case JibekServiceType.freight: return 'Заказать грузовой';
+      case JibekServiceType.parcel: return 'Отправить посылку';
+      case JibekServiceType.towTruck:
+      case JibekServiceType.mobileTire: return 'Вызвать помощь';
+    }
+  }
+
+  Widget _offerCard(int index, String title, String subtitle, IconData icon) {
+    final selected = (_service == JibekServiceType.cityTaxi && index < 4 && _class == title) ||
+        (index == 4 && _service == JibekServiceType.intercity) ||
+        (index == 5 && _service == JibekServiceType.freight) ||
+        (index == 6 && _service == JibekServiceType.parcel) ||
+        (index == 7 && _service == JibekServiceType.towTruck) ||
+        (index == 8 && _service == JibekServiceType.mobileTire);
+    return GestureDetector(
+      onTap: () => _selectOffer(index),
+      child: Container(
+        width: 122,
+        margin: const EdgeInsets.only(right: 9),
+        padding: const EdgeInsets.fromLTRB(9, 10, 9, 9),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFFFF9E5) : const Color(0xFFF5F6FA),
+          border: Border.all(color: selected ? const Color(0xFFFFC928) : const Color(0xFFE3E7EF), width: selected ? 2.5 : 1),
+          borderRadius: BorderRadius.circular(17),
+        ),
+        child: Stack(children: [
+          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, size: 34, color: const Color(0xFF172B3A)),
+            const SizedBox(height: 7),
+            Text(title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+            const SizedBox(height: 3),
+            Text(subtitle, textAlign: TextAlign.center, maxLines: 2,
+              style: const TextStyle(fontSize: 10, color: Color(0xFF687386))),
+          ]),
+          if (selected) const Positioned(right: 0, top: 0, child: CircleAvatar(
+            radius: 10, backgroundColor: Color(0xFFFFC928),
+            child: Icon(Icons.check_rounded, size: 14, color: Color(0xFF172B3A)),
+          )),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildOfferOptions() {
+    if (_service == JibekServiceType.cityTaxi) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(child: _metricTile(Icons.access_time_rounded, _durationLabel ?? 'от 2 мин', 'Время подачи')),
+          const SizedBox(width: 7),
+          Expanded(child: _metricTile(Icons.route_rounded, _distanceLabel ?? '— км', 'Расстояние')),
+        ]),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: _metricTile(Icons.payments_rounded,
+            '${_estimatedTaxiFare + (_boostSelected ? 250 : 0)} ₸', 'Итого к оплате')),
+          const SizedBox(width: 7),
+          Expanded(child: OutlinedButton.icon(
+            onPressed: () => setState(() => _boostSelected = !_boostSelected),
+            icon: Icon(_boostSelected ? Icons.check_circle : Icons.bolt_rounded),
+            label: Text(_boostSelected ? 'Ускорение +250 ₸' : '+250 ₸ ускорить'),
+            style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF9A6A00)),
+          )),
+        ]),
+      ]);
+    }
+    if (_service == JibekServiceType.intercity) {
+      const cities = ['Туркестан', 'Алматы', 'Тараз', 'Кызылорда', 'Астана'];
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Куда едем?', style: TextStyle(fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: _intercityCity,
+          decoration: const InputDecoration(isDense: true, border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_city)),
+          items: cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() { _intercityCity = value; _toController.text = value; _toPoint = null; _route = []; });
+          },
+        ),
+        const SizedBox(height: 9),
+        Row(children: [
+          const Expanded(child: Text('Количество мест', style: TextStyle(fontWeight: FontWeight.w800))),
+          IconButton(onPressed: _intercitySeats > 1 ? () => setState(() => _intercitySeats--) : null, icon: const Icon(Icons.remove_circle_outline)),
+          Text('$_intercitySeats', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          IconButton(onPressed: _intercitySeats < 4 ? () => setState(() => _intercitySeats++) : null, icon: const Icon(Icons.add_circle_outline)),
+        ]),
+      ]);
+    }
+    if (_service == JibekServiceType.freight) {
+      return SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        value: _needMovers,
+        onChanged: (value) => setState(() => _needMovers = value),
+        title: const Text('Нужны грузчики', style: TextStyle(fontWeight: FontWeight.w800)),
+        subtitle: const Text('Дополнительная услуга к грузовому автомобилю'),
+        activeColor: const Color(0xFFB58A16),
+      );
+    }
+    final hint = _service == JibekServiceType.parcel
+        ? 'Что передаём? От двери до двери'
+        : _service == JibekServiceType.towTruck
+            ? 'Тип авто и что случилось'
+            : 'Тип автомобиля, размер колёс и проблема';
+    return TextField(
+      controller: _noteController,
+      maxLines: 2,
+      maxLength: 250,
+      decoration: InputDecoration(
+        labelText: hint,
+        prefixIcon: const Icon(Icons.edit_note_rounded),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
+  Widget _metricTile(IconData icon, String value, String label) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
+    decoration: BoxDecoration(color: const Color(0xFFF1F3FA), borderRadius: BorderRadius.circular(14)),
+    child: Row(children: [
+      Icon(icon, color: const Color(0xFF172B3A), size: 23),
+      const SizedBox(width: 7),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 10, color: Color(0xFF687386))),
+      ])),
+    ]),
+  );
+
   @override
   Widget build(BuildContext context) {
     final markers = <Marker>[
       if (_fromPoint != null)
-        Marker(
-          point: _fromPoint!,
-          width: 42,
-          height: 42,
-          child: const Icon(Icons.my_location, color: Color(0xFF10243A), size: 32),
-        ),
+        Marker(point: _fromPoint!, width: 42, height: 42,
+          child: const Icon(Icons.my_location, color: Color(0xFF126B45), size: 32)),
       if (_addStop && _stopPoint != null)
-        Marker(
-          point: _stopPoint!, width: 42, height: 42,
-          child: const Icon(Icons.more_horiz, color: Color(0xFFB7791F), size: 34),
-        ),
+        Marker(point: _stopPoint!, width: 42, height: 42,
+          child: const Icon(Icons.more_horiz, color: Color(0xFFB7791F), size: 34)),
       if (_toPoint != null)
-        Marker(
-          point: _toPoint!,
-          width: 46,
-          height: 46,
-          child: const Icon(Icons.location_on, color: Color(0xFFC84D43), size: 42),
-        ),
+        Marker(point: _toPoint!, width: 46, height: 46,
+          child: const Icon(Icons.location_on, color: Color(0xFFC62828), size: 42)),
+      for (final car in const [
+        LatLng(42.3190, 69.5790), LatLng(42.3090, 69.5920),
+        LatLng(42.3250, 69.6000), LatLng(42.3060, 69.5700),
+      ])
+        Marker(point: car, width: 27, height: 27,
+          child: const Icon(Icons.local_taxi_rounded, color: Color(0xFFFFB800), size: 25)),
     ];
 
     return Scaffold(
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _shymkent,
-              initialZoom: 13,
-              onTap: _selectMapPoint,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'kz.jibekzholy.passenger',
-              ),
-              if (_route.isNotEmpty)
-                PolylineLayer(polylines: [
-                  Polyline(
-                    points: _route,
-                    strokeWidth: 5,
-                    color: const Color(0xFF10243A),
-                    borderStrokeWidth: 1.5,
-                    borderColor: Colors.white,
-                  ),
-                ]),
-              MarkerLayer(markers: markers),
-              const RichAttributionWidget(
-                attributions: [TextSourceAttribution('© OpenStreetMap contributors')],
-              ),
-            ],
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-              child: Row(
-                children: [
-                  const Text('Bake Taxi', style: TextStyle(
-                    color: Color(0xFF172B3A), fontSize: 20, fontWeight: FontWeight.w900)),
-
-                  const Spacer(),
-                  Material(
-                    color: Colors.white,
-                    shape: const CircleBorder(),
-                    elevation: 3,
-                    child: IconButton(
-                      tooltip: 'Моё местоположение',
-                      onPressed: _locating ? null : _findMe,
-                      icon: _locating
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.my_location_rounded, color: Color(0xFF10243A)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DraggableScrollableSheet(
-            initialChildSize: .42,
-            minChildSize: .34,
-            maxChildSize: .82,
-            snap: true,
-            snapSizes: const [.42, .82],
-            builder: (context, scrollController) => Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, -4))],
-              ),
-              child: ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                children: [
-                  Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
-                  const SizedBox(height: 16),
-                  const Text('Куда поедем?', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: Color(0xFF10243A))),
-                  const SizedBox(height: 14),
-                  _placeField(Icons.radio_button_checked, 'Откуда забрать?', _fromController, onSubmitted: (_) => _searchFrom(), onChanged: (_) { setState(() { _fromPoint = null; _route = []; _distanceLabel = null; _durationLabel = null; }); }),
-                  const SizedBox(height: 9),
-                  _placeField(Icons.location_on_rounded, 'Куда', _toController, onSubmitted: (_) => _searchDestination(), onChanged: (_) { setState(() { _toPoint = null; _route = []; _distanceLabel = null; _durationLabel = null; }); }),
-                  Align(alignment: Alignment.centerRight, child: TextButton.icon(
-                    onPressed: () => setState(() {
-                      _addStop = !_addStop;
-                      if (!_addStop) {
-                        _stopPoint = null;
-                        _stopController.clear();
-                      }
-                      _route = [];
-                      _distanceLabel = null;
-                      _durationLabel = null;
-                    }),
-                    icon: Icon(_addStop ? Icons.remove_circle_outline : Icons.add_circle_outline),
-                    label: Text(_addStop ? 'Убрать остановку' : 'Добавить остановку'),
-                  )),
-                  if (_addStop) _placeField(
-                    Icons.more_horiz, 'Промежуточная остановка', _stopController,
-                    onSubmitted: (_) => _searchStop(),
-                    onChanged: (_) => setState(() {
-                      _stopPoint = null;
-                      _route = [];
-                      _distanceLabel = null;
-                      _durationLabel = null;
-                    }),
-                  ),
-                  if (_addStop) Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _searching ? null : _searchStop,
-                      icon: const Icon(Icons.search),
-                      label: const Text('Найти остановку'),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _searching ? null : _searchDestination,
-                      icon: const Icon(Icons.search),
-                      label: const Text('Найти адрес'),
-                    ),
-                  ),
-                  if (_createdOrder != null)
-                    Card(
-                      color: const Color(0xFFF1F4F7),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text('Ваша заявка', style: TextStyle(fontWeight: FontWeight.w900)),
-                            ]),
-                            const SizedBox(height: 6),
-                            Text('Номер: ${_createdOrder!.id}'),
-                            Text('Статус: ${_statusLabel(_createdOrder!.status)}',
-                                style: const TextStyle(fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 8),
-                            Row(children: [
-                              const Icon(Icons.payments_rounded, color: Color(0xFF10243A)),
-                              const SizedBox(width: 7),
-                              Text('${_createdOrder!.priceKzt} ₸', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                              const Spacer(),
-                              if (_createdOrder!.isBoosted) const Chip(avatar: Icon(Icons.local_fire_department, color: Colors.deepOrange, size: 18), label: Text('Повышена')),
-                            ]),
-                            if (_createdOrder!.status == JibekOrderStatus.searching) ...[
-                              const SizedBox(height: 8),
-                              SizedBox(width: double.infinity, child: FilledButton.icon(
-                                onPressed: _refreshingOrder || _cancellingOrder ? null : _boostOrder,
-                                icon: const Icon(Icons.local_fire_department_rounded),
-                                label: const Text('+250 ₸ — ускорить поиск'),
-                                style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFF8A00), foregroundColor: Colors.white),
-                              )),
-                            ],
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children: [
-                                OutlinedButton.icon(
-                                  onPressed: _refreshingOrder || _cancellingOrder
-                                      ? null
-                                      : _refreshOrder,
-                                  icon: _refreshingOrder
-                                      ? const SizedBox(width: 16, height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2))
-                                      : const Icon(Icons.refresh),
-                                  label: const Text('Обновить статус'),
-                                ),
-                                if (_canCancelOrder(_createdOrder!.status))
-                                  TextButton.icon(
-                                    onPressed: _refreshingOrder || _cancellingOrder
-                                        ? null
-                                        : _cancelOrder,
-                                    icon: const Icon(Icons.close, color: Colors.red),
-                                    label: const Text('Отменить',
-                                        style: TextStyle(color: Colors.red)),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (_distanceLabel != null && _durationLabel != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: const Color(0xFFF1F4F7), borderRadius: BorderRadius.circular(14)),
-                      child: Row(children: [
-                        const Icon(Icons.route, color: Color(0xFF10243A)),
-                        const SizedBox(width: 10),
-                        Text('$_distanceLabel  •  $_durationLabel', style: const TextStyle(fontWeight: FontWeight.w800)),
-                      ]),
-                    ),
-                  const SizedBox(height: 8),
-                  const Text('Услуга', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
-                    _serviceTab('Такси', JibekServiceType.cityTaxi),
-                    _serviceTab('Межгород', JibekServiceType.intercity),
-                    _serviceTab('Посылка', JibekServiceType.parcel),
-                    _serviceTab('Грузовой', JibekServiceType.freight),
-                    _serviceTab('Эвакуатор', JibekServiceType.towTruck),
-                    _serviceTab('Шиномонтаж', JibekServiceType.mobileTire),
+      body: Stack(children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(initialCenter: _shymkent, initialZoom: 13, onTap: _selectMapPoint),
+          children: [
+            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'kz.bakytaxi.passenger'),
+            if (_route.isNotEmpty)
+              PolylineLayer(polylines: [Polyline(points: _route, strokeWidth: 5,
+                color: const Color(0xFF1557D5), borderStrokeWidth: 1.5, borderColor: Colors.white)]),
+            MarkerLayer(markers: markers),
+            const RichAttributionWidget(attributions: [TextSourceAttribution('© OpenStreetMap contributors')]),
+          ],
+        ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(colors: [Color(0xFF0B1D4D), Color(0xFF15327A)]),
+                  borderRadius: BorderRadius.all(Radius.circular(22)),
+                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4))],
+                ),
+                child: Row(children: [
+                  ClipRRect(borderRadius: BorderRadius.circular(10),
+                    child: Image.asset('../passenger_icon.png', width: 46, height: 46, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.local_taxi_rounded, color: Color(0xFFFFD64A), size: 38))),
+                  const SizedBox(width: 10),
+                  const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Bake Taxi', style: TextStyle(color: Color(0xFFFFD64A), fontSize: 21,
+                      fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
+                    Text('Быстро. Надёжно. По-человечески!',
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
                   ])),
-                  if (_service == JibekServiceType.cityTaxi) ...[
-                    const SizedBox(height: 12),
-                    const Text('Выберите тариф', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Color(0xFF172B3A))),
-                    const SizedBox(height: 8),
-                    SizedBox(height: 128, child: ListView(scrollDirection: Axis.horizontal, children: [
-                      _tariffCard('Эконом', Icons.directions_car_rounded, 'от 2 мин', 'Цена после маршрута'),
-                      _tariffCard('Комфорт', Icons.airline_seat_recline_extra_rounded, 'от 5 мин', 'Цена после маршрута'),
-                      _tariffCard('Бизнес', Icons.directions_car_filled_rounded, 'от 7 мин', 'Цена после маршрута'),
-                    ])),
-                  ],
-                  if (_service == JibekServiceType.freight || _service == JibekServiceType.parcel ||
-                      _service == JibekServiceType.towTruck || _service == JibekServiceType.mobileTire) ...[
-                    const SizedBox(height: 10),
-                    Text(_service == JibekServiceType.parcel ? 'Доставка посылки' :
-                      _service == JibekServiceType.freight ? 'Грузовой автомобиль' :
-                      _service == JibekServiceType.towTruck ? 'Эвакуатор' : 'Выездной шиномонтаж',
-                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
-                  ],
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _noteController,
-                    maxLines: 2,
-                    maxLength: 500,
-                    decoration: InputDecoration(
-                      labelText: _service == JibekServiceType.parcel
-                          ? 'Что нужно доставить?'
-                           : _service == JibekServiceType.freight
-                              ? 'Опишите груз, габариты и адрес доставки'
-                              : _service == JibekServiceType.towTruck
-                              ? 'Опишите автомобиль и поломку'
-                              : _service == JibekServiceType.mobileTire
-                                  ? 'Укажите размер колёс и проблему'
-                                  : 'Комментарий водителю',
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  IconButton(onPressed: () => _message('Уведомления появятся после подключения сервера'),
+                    icon: const Icon(Icons.notifications_none_rounded, color: Colors.white)),
+                  IconButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const PassengerProfilePage())),
+                    icon: const Icon(Icons.account_circle_rounded, color: Colors.white, size: 29)),
+                ]),
+              ),
+              const SizedBox(height: 9),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 12)]),
+                child: Column(children: [
                   Row(children: [
-                    Expanded(child: OutlinedButton.icon(
-                      onPressed: () => setState(() => _paymentMethod = _paymentMethod == 'Наличные' ? 'Kaspi' : 'Наличные'),
-                      icon: const Icon(Icons.payments_outlined), label: Text(_paymentMethod),
-                    )),
+                    const Icon(Icons.location_on, color: Color(0xFF159447)),
                     const SizedBox(width: 8),
-                    Expanded(child: OutlinedButton.icon(
-                      onPressed: _showPreferences,
-                      icon: const Icon(Icons.tune_rounded), label: const Text('Пожелания'),
-                    )),
+                    const Text('Откуда:', style: TextStyle(fontSize: 12)),
+                    Expanded(child: TextField(controller: _fromController,
+                      onSubmitted: (_) => _searchFrom(),
+                      onChanged: (_) => setState(() { _fromPoint = null; _route = []; }),
+                      decoration: const InputDecoration(hintText: 'Определяем адрес по GPS',
+                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 10)))),
+                    IconButton(tooltip: 'Очистить адрес', onPressed: () {
+                      _fromController.clear();
+                      setState(() { _fromPoint = null; _route = []; });
+                    }, icon: const Icon(Icons.close, size: 19)),
+                    IconButton(tooltip: 'Моё местоположение', onPressed: _locating ? null : _findMe,
+                      icon: const Icon(Icons.my_location_rounded, color: Color(0xFF126B45))),
                   ]),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 54,
-                    child: FilledButton.icon(
+                  const Divider(height: 1),
+                  Row(children: [
+                    const Icon(Icons.location_on, color: Color(0xFFD32F2F)),
+                    const SizedBox(width: 8),
+                    const Text('Куда:', style: TextStyle(fontSize: 12)),
+                    Expanded(child: TextField(controller: _toController,
+                      onSubmitted: (_) => _searchDestination(),
+                      onChanged: (_) => setState(() { _toPoint = null; _route = []; }),
+                      decoration: const InputDecoration(hintText: 'Выберите адрес назначения',
+                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 10)))),
+                    IconButton(tooltip: 'Промежуточная остановка', onPressed: () => setState(() => _addStop = !_addStop),
+                      icon: const Icon(Icons.add, size: 23)),
+                  ]),
+                  if (_addStop) _placeField(Icons.more_horiz, 'Промежуточная остановка', _stopController,
+                    onSubmitted: (_) => _searchStop()),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+        DraggableScrollableSheet(
+          initialChildSize: .52, minChildSize: .43, maxChildSize: .88,
+          snap: true, snapSizes: const [.52, .88],
+          builder: (context, scrollController) => Container(
+            decoration: const BoxDecoration(color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, -4))]),
+            child: ListView(controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 11, 16, 28),
+              children: [
+                Center(child: Container(width: 42, height: 4,
+                  decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
+                const SizedBox(height: 12),
+                const Row(children: [
+                  Icon(Icons.directions_car_filled_rounded, size: 24, color: Color(0xFF172B3A)),
+                  SizedBox(width: 8),
+                  Text('Выберите тариф или услугу', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                ]),
+                const SizedBox(height: 10),
+                SizedBox(height: 112, child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 9,
+                  itemBuilder: (context, index) {
+                    const titles = ['Эконом', 'Комфорт', 'Бизнес', 'Минивэн', 'Межгород', 'Грузовой', 'Посылка', 'Эвакуатор', 'Шиномонтаж'];
+                    const subtitles = ['от 1 000 ₸', 'от 1 200 ₸', 'от 1 800 ₸', '6–7 мест', 'По РК', 'С грузчиками', 'От двери', 'Помощь на дороге', 'На выезд'];
+                    const icons = [Icons.directions_car_rounded, Icons.airline_seat_recline_extra_rounded,
+                      Icons.directions_car_filled_rounded, Icons.airport_shuttle_rounded, Icons.route_rounded,
+                      Icons.local_shipping_rounded, Icons.inventory_2_rounded, Icons.car_crash_rounded, Icons.tire_repair_rounded];
+                    return _offerCard(index, titles[index], subtitles[index], icons[index]);
+                  },
+                )),
+                const SizedBox(height: 12),
+                AnimatedSwitcher(duration: const Duration(milliseconds: 180),
+                  child: Column(key: ValueKey('$_service-$_class'), children: [
+                    _buildOfferOptions(),
+                    if (_createdOrder != null) ...[
+                      const SizedBox(height: 10),
+                      Card(color: const Color(0xFFF1F4F7), child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Text('ВАША ЗАЯВКА', style: TextStyle(fontWeight: FontWeight.w900)),
+                          Text('Номер: ${_createdOrder!.id}'),
+                          Text('Статус: ${_statusLabel(_createdOrder!.status)}'),
+                          Text('${_createdOrder!.priceKzt} ₸', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                          if (_createdOrder!.status == JibekOrderStatus.searching)
+                            TextButton.icon(onPressed: _refreshingOrder || _cancellingOrder ? null : _boostOrder,
+                              icon: const Icon(Icons.bolt_rounded), label: const Text('+250 ₸ — ускорить поиск')),
+                          Wrap(spacing: 8, children: [
+                            OutlinedButton.icon(onPressed: _refreshingOrder || _cancellingOrder ? null : _refreshOrder,
+                              icon: const Icon(Icons.refresh), label: const Text('Обновить')),
+                            if (_canCancelOrder(_createdOrder!.status))
+                              TextButton.icon(onPressed: _refreshingOrder || _cancellingOrder ? null : _cancelOrder,
+                                icon: const Icon(Icons.close, color: Colors.red), label: const Text('Отменить')),
+                          ]),
+                        ]),
+                      )),
+                    ],
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      Expanded(child: OutlinedButton.icon(
+                        onPressed: () => setState(() => _paymentMethod = _paymentMethod == 'Наличные' ? 'Kaspi' : 'Наличные'),
+                        icon: const Icon(Icons.payments_outlined), label: Text(_paymentMethod))),
+                      const SizedBox(width: 8),
+                      Expanded(child: OutlinedButton.icon(onPressed: _showPreferences,
+                        icon: const Icon(Icons.tune_rounded), label: const Text('Пожелания'))),
+                    ]),
+                    const SizedBox(height: 10),
+                    SizedBox(height: 54, width: double.infinity, child: FilledButton.icon(
                       onPressed: (_searching || _sendingOrder) ? null : () {
                         if (_toPoint == null) {
-                          _searchDestination();
+                          if (_toController.text.trim().isEmpty) {
+                            _message('Укажите адрес назначения');
+                          } else { _searchDestination(); }
                         } else if (_fromPoint == null) {
-                          if (_fromController.text.trim().isNotEmpty &&
-                              _fromController.text.trim() != 'Моё местоположение') {
-                            _searchFrom();
-                          } else {
-                            _findMe();
-                          }
+                          _findMe();
                         } else if (_route.isEmpty) {
                           _buildRoute();
                         } else {
                           _submitOrder();
                         }
                       },
-                      icon: _searching
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.local_taxi_rounded),
-                      label: Text((_searching || _sendingOrder) ? 'Подождите...' : (_route.isNotEmpty ? (_service == JibekServiceType.parcel ? 'Заказать доставку' : _service == JibekServiceType.freight ? 'Заказать грузовую машину' : _service == JibekServiceType.towTruck ? 'Вызвать эвакуатор' : _service == JibekServiceType.mobileTire ? 'Вызвать шиномонтаж' : 'Заказать поездку') : 'Продолжить'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFC928), foregroundColor: const Color(0xFF172B3A), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text('Введите адрес назначения или коснитесь карты. Для построения маршрута разрешите геолокацию.', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF7A8796), fontSize: 12)),
-                ],
-              ),
+                      icon: const Icon(Icons.local_taxi_rounded),
+                      label: Text(_orderButtonLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFC400),
+                        foregroundColor: const Color(0xFF172B3A),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    )),
+                  ]),
+                ),
+                const SizedBox(height: 8),
+                const Text('Укажите адрес или выберите точку на карте. Маршрут и подача рассчитываются после определения адресов.',
+                  textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF7A8796), fontSize: 11)),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _serviceTab(String label, JibekServiceType service) => Padding(
-    padding: const EdgeInsets.only(right: 8),
-    child: ChoiceChip(
-      label: Text(label), selected: _service == service,
-      selectedColor: const Color(0xFFE5EBF2),
-      onSelected: (_) => setState(() => _service = service),
-    ),
-  );
-
-  Widget _tariffCard(String label, IconData icon, String eta, String price) {
-    final selected = _class == label;
-    return GestureDetector(
-      onTap: () => setState(() => _class = label),
-      child: Container(
-        width: 142, margin: const EdgeInsets.only(right: 9), padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFEAF0F6) : Colors.white,
-          border: Border.all(color: selected ? const Color(0xFFE3BD70) : const Color(0xFFE1E6EC), width: selected ? 2 : 1),
-          borderRadius: BorderRadius.circular(16),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(icon, size: 30, color: const Color(0xFF10243A)),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-          Text(eta, style: const TextStyle(fontSize: 11, color: Color(0xFF687386))),
-          Text(price, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
-        ]),
-      ),
+      ]),
     );
   }
 
@@ -694,7 +720,6 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
   Future<void> _submitOrder() async {
     final requiresDetails = _service == JibekServiceType.parcel ||
-        _service == JibekServiceType.freight ||
         _service == JibekServiceType.towTruck ||
         _service == JibekServiceType.mobileTire;
     if (requiresDetails && _noteController.text.trim().isEmpty) {
@@ -723,6 +748,10 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       _noteController.text.trim(),
       if (_childSeat) 'Детское кресло',
       if (_needMovers) 'Нужны грузчики',
+      if (_service == JibekServiceType.freight) 'Грузовой заказ',
+      if (_service == JibekServiceType.intercity) 'Межгород: $_intercityCity; мест: $_intercitySeats',
+      if (_needMovers) 'Нужны грузчики',
+      if (_boostSelected) 'Приоритет +250 ₸',
       'Оплата: $_paymentMethod',
     ].where((item) => item.isNotEmpty).join('; ');
     try {
@@ -736,7 +765,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         createdAt: DateTime.now(),
         vehicleClass: _service == JibekServiceType.cityTaxi ? _class : null,
         note: orderNote.isEmpty ? null : orderNote,
-        priceKzt: 250,
+        priceKzt: _service == JibekServiceType.cityTaxi ? _estimatedTaxiFare + (_boostSelected ? 250 : 0) : 250,
+        boostCount: _boostSelected ? 1 : 0,
       );
       final validation = draft.validate();
       if (validation != null) { _message(validation); return; }
