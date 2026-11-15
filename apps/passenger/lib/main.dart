@@ -53,6 +53,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   final MapController _mapController = MapController();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
+  final FocusNode _fromFocusNode = FocusNode();
+  final FocusNode _toFocusNode = FocusNode();
+  bool _addressFieldFocused = false;
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _stopController = TextEditingController();
   bool _addStop = false;
@@ -85,6 +88,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   void initState() {
     super.initState();
     _service = widget.initialService;
+    _fromFocusNode.addListener(_onAddressFocusChanged);
+    _toFocusNode.addListener(_onAddressFocusChanged);
     final initialNote = widget.initialNote?.trim();
     if (initialNote != null && initialNote.isNotEmpty) {
       _noteController.text = initialNote;
@@ -100,8 +105,17 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted && _fromController.text.trim().isEmpty) _findMe(); });
   }
 
+  void _onAddressFocusChanged() {
+    final focused = _fromFocusNode.hasFocus || _toFocusNode.hasFocus;
+    if (mounted && focused != _addressFieldFocused) setState(() => _addressFieldFocused = focused);
+  }
+
   @override
   void dispose() {
+    _fromFocusNode.removeListener(_onAddressFocusChanged);
+    _toFocusNode.removeListener(_onAddressFocusChanged);
+    _fromFocusNode.dispose();
+    _toFocusNode.dispose();
     _fromController.dispose();
     _toController.dispose();
     _noteController.dispose();
@@ -480,6 +494,16 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
+  Widget _compactSummary(IconData icon, String value) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 14, color: const Color(0xFF687386)),
+      const SizedBox(width: 3),
+      Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+    ],
+  );
+
   Widget _metricTile(IconData icon, String value, String label) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
     decoration: BoxDecoration(color: const Color(0xFFF1F3FA), borderRadius: BorderRadius.circular(14)),
@@ -497,6 +521,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final editingAddress = keyboardOpen || _addressFieldFocused;
     final markers = <Marker>[
       if (_fromPoint != null)
         Marker(point: _fromPoint!, width: 42, height: 42,
@@ -551,7 +577,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     const Icon(Icons.location_on, color: Color(0xFF159447), size: 20),
                     const SizedBox(width: 6),
                     const Text('Откуда', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                    Expanded(child: TextField(controller: _fromController, onSubmitted: (_) => _searchFrom(),
+                    Expanded(child: TextField(controller: _fromController, focusNode: _fromFocusNode, onSubmitted: (_) => _searchFrom(),
                       onChanged: (_) => setState(() { _fromPoint = null; _route = []; }),
                       decoration: const InputDecoration(hintText: 'Определяем адрес по GPS',
                         border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 9)))),
@@ -564,7 +590,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     const Icon(Icons.location_on, color: Color(0xFFD32F2F), size: 20),
                     const SizedBox(width: 6),
                     const Text('Куда', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                    Expanded(child: TextField(controller: _toController, onSubmitted: (_) => _searchDestination(),
+                    Expanded(child: TextField(controller: _toController, focusNode: _toFocusNode, onSubmitted: (_) => _searchDestination(),
                       onChanged: (_) => setState(() { _toPoint = null; _route = []; }),
                       decoration: const InputDecoration(hintText: 'Выберите адрес назначения',
                         border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 9)))),
@@ -579,74 +605,61 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             ]),
           ),
         ),
-        DraggableScrollableSheet(
-          initialChildSize: .43, minChildSize: .38, maxChildSize: .78,
-          snap: true, snapSizes: const [.43, .78],
-          builder: (context, scrollController) => Container(
-            decoration: const BoxDecoration(color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, -4))]),
-            child: ListView(controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-              children: [
-                Center(child: Container(width: 42, height: 4,
-                  decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
-                const SizedBox(height: 12),
-                const Row(children: [
-                  Icon(Icons.directions_car_filled_rounded, size: 24, color: Color(0xFF172B3A)),
-                  SizedBox(width: 8),
-                  Text('Выберите тариф или услугу', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                ]),
-                const SizedBox(height: 10),
-                SizedBox(height: 106, child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 9,
-                  itemBuilder: (context, index) {
-                    const titles = ['Эконом', 'Комфорт', 'Бизнес', 'Минивэн', 'Межгород', 'Грузовой', 'Посылка', 'Эвакуатор', 'Шиномонтаж'];
-                    const subtitles = ['Седан', 'Седан', 'Седан', '6–7 мест', 'По РК', 'Грузовой', 'От двери', 'Помощь', 'Выезд'];
-                    const icons = [Icons.directions_car_rounded, Icons.airline_seat_recline_extra_rounded,
-                      Icons.directions_car_filled_rounded, Icons.airport_shuttle_rounded, Icons.route_rounded,
-                      Icons.local_shipping_rounded, Icons.inventory_2_rounded, Icons.car_crash_rounded, Icons.build_circle_rounded];
-                    return _offerCard(index, titles[index], subtitles[index], icons[index]);
-                  },
-                )),
-                const SizedBox(height: 12),
-                AnimatedSwitcher(duration: const Duration(milliseconds: 180),
-                  child: Column(key: ValueKey('$_service-$_class'), children: [
-                    _buildOfferOptions(),
-                    if (_createdOrder != null) ...[
-                      const SizedBox(height: 10),
-                      Card(color: const Color(0xFFF1F4F7), child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          const Text('ВАША ЗАЯВКА', style: TextStyle(fontWeight: FontWeight.w900)),
-                          Text('Номер: ${_createdOrder!.id}'),
-                          Text('Статус: ${_statusLabel(_createdOrder!.status)}'),
-                          Text('${_createdOrder!.priceKzt} ₸', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                          if (_createdOrder!.status == JibekOrderStatus.searching)
-                            TextButton.icon(onPressed: _refreshingOrder || _cancellingOrder ? null : _boostOrder,
-                              icon: const Icon(Icons.bolt_rounded), label: const Text('+250 ₸ — ускорить поиск')),
-                          Wrap(spacing: 8, children: [
-                            OutlinedButton.icon(onPressed: _refreshingOrder || _cancellingOrder ? null : _refreshOrder,
-                              icon: const Icon(Icons.refresh), label: const Text('Обновить')),
-                            if (_canCancelOrder(_createdOrder!.status))
-                              TextButton.icon(onPressed: _refreshingOrder || _cancellingOrder ? null : _cancelOrder,
-                                icon: const Icon(Icons.close, color: Colors.red), label: const Text('Отменить')),
-                          ]),
-                        ]),
-                      )),
-                    ],
-                    const SizedBox(height: 12),
+        if (!editingAddress)
+          SafeArea(
+            top: false,
+            child: DraggableScrollableSheet(
+              initialChildSize: .40, minChildSize: .36, maxChildSize: .70,
+              snap: true, snapSizes: const [.40, .70],
+              builder: (context, scrollController) => Container(
+                decoration: const BoxDecoration(color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 16, offset: Offset(0, -4))]),
+                child: ListView(
+                  controller: scrollController,
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
+                  children: [
+                    Center(child: Container(width: 38, height: 4,
+                      decoration: BoxDecoration(color: const Color(0xFFD9DEE5), borderRadius: BorderRadius.circular(8)))),
+                    const SizedBox(height: 7),
+                    SizedBox(height: 112, child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: 9,
+                      itemBuilder: (context, index) {
+                        const titles = ['Эконом', 'Комфорт', 'Бизнес', 'Минивэн', 'Межгород', 'Грузовой', 'Посылка', 'Эвакуатор', 'Шиномонтаж'];
+                        const subtitles = ['Седан', 'Седан', 'Седан', '6–7 мест', 'По РК', 'Грузовой', 'От двери', 'Помощь', 'Выезд'];
+                        const icons = [Icons.directions_car_rounded, Icons.airline_seat_recline_extra_rounded,
+                          Icons.directions_car_filled_rounded, Icons.airport_shuttle_rounded, Icons.route_rounded,
+                          Icons.local_shipping_rounded, Icons.inventory_2_rounded, Icons.car_crash_rounded, Icons.build_circle_rounded];
+                        return _offerCard(index, titles[index], subtitles[index], icons[index]);
+                      },
+                    )),
+                    const SizedBox(height: 7),
                     Row(children: [
-                      Expanded(child: OutlinedButton.icon(
-                        onPressed: () => setState(() => _paymentMethod = _paymentMethod == 'Наличные' ? 'Kaspi' : 'Наличные'),
-                        icon: const Icon(Icons.payments_outlined), label: Text(_paymentMethod))),
-                      const SizedBox(width: 8),
-                      Expanded(child: OutlinedButton.icon(onPressed: _showPreferences,
-                        icon: const Icon(Icons.tune_rounded), label: const Text('Пожелания'))),
+                      Expanded(child: _compactSummary(Icons.access_time_rounded, 'от 2 мин')),
+                      const SizedBox(width: 5),
+                      Expanded(child: _compactSummary(Icons.route_rounded, _distanceLabel ?? '— км')),
+                      const SizedBox(width: 5),
+                      Expanded(child: _compactSummary(Icons.payments_rounded,
+                        '${_estimatedTaxiFare + (_boostSelected ? 250 : 0)} ₸')),
+                      const SizedBox(width: 5),
+                      ActionChip(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        label: Text(_boostSelected ? '✓ 250 ₸' : '+250 ₸',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800)),
+                        onPressed: () => setState(() => _boostSelected = !_boostSelected),
+                      ),
                     ]),
-                    const SizedBox(height: 10),
-                    SizedBox(height: 54, width: double.infinity, child: FilledButton.icon(
+                    if (_createdOrder != null) ...[
+                      const SizedBox(height: 5),
+                      Text('Заказ ${_createdOrder!.id} • ${_statusLabel(_createdOrder!.status)}',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    ],
+                    const SizedBox(height: 6),
+                    SizedBox(height: 48, width: double.infinity, child: FilledButton(
                       onPressed: (_searching || _sendingOrder) ? null : () {
                         if (_toPoint == null) {
                           if (_toController.text.trim().isEmpty) {
@@ -660,21 +673,20 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                           _submitOrder();
                         }
                       },
-                      icon: const Icon(Icons.local_taxi_rounded),
-                      label: Text(_orderButtonLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFC400),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFC400),
                         foregroundColor: const Color(0xFF172B3A),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                      child: FittedBox(fit: BoxFit.scaleDown,
+                        child: Text(_orderButtonLabel, maxLines: 1, softWrap: false,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
                     )),
-                  ]),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                const Text('Укажите адрес или выберите точку на карте. Маршрут и подача рассчитываются после определения адресов.',
-                  textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF7A8796), fontSize: 11)),
-              ],
+              ),
             ),
           ),
-        ),
       ]),
     );
   }
