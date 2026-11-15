@@ -515,30 +515,31 @@ class _DriverMapPageState extends State<DriverMapPage> {
 
   Widget _orderCard(JibekOrderRequest order) => Card(
     margin: const EdgeInsets.only(bottom: 10),
-    child: Padding(
-      padding: const EdgeInsets.all(14),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(child: Text(_serviceLabel(order.service), style: const TextStyle(fontWeight: FontWeight.w900))),
-          if (order.isBoosted) Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5), decoration: BoxDecoration(color: const Color(0xFFFFE1B8), borderRadius: BorderRadius.circular(20)), child: const Text('🔥 Повышенная цена', style: TextStyle(color: Color(0xFFB74700), fontWeight: FontWeight.w900, fontSize: 11))),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => DriverIncomingOrderPage(
+          order: order,
+          pickupDistance: _pickupDistance(order),
+          onAccept: () => _acceptOrder(order),
+        ),
+      )),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(_serviceLabel(order.service), style: const TextStyle(fontWeight: FontWeight.w900))),
+            if (order.isBoosted) const Chip(label: Text('🔥 Повышенная цена', style: TextStyle(fontSize: 10))),
+          ]),
+          Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF16834A))),
+          Text('До подачи: ${_pickupDistance(order)}', style: const TextStyle(color: Color(0xFF687386), fontWeight: FontWeight.w700)),
+          Text('Откуда: ${order.pickup.address ?? 'Точка на карте'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text('Куда: ${order.destination.address ?? 'Точка на карте'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 8),
+          const Row(children: [Icon(Icons.open_in_new_rounded, size: 15), SizedBox(width: 5),
+            Text('Открыть подробности заказа', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800))]),
         ]),
-        const SizedBox(height: 7),
-        Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF16834A))),
-        Text('До подачи: ${_pickupDistance(order)}', style: const TextStyle(color: Color(0xFF687386), fontWeight: FontWeight.w700)),
-        Text('Откуда: ' + (order.pickup.address ?? 'Точка на карте')),
-        Text('Куда: ' + (order.destination.address ?? 'Точка на карте')),
-        if (order.vehicleClass != null) Text('Класс: ' + order.vehicleClass!),
-        if (order.note != null && order.note!.trim().isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Text('Комментарий: ' + order.note!,
-              style: const TextStyle(color: Color(0xFF687386))),
-        ],
-        const SizedBox(height: 10),
-        SizedBox(width: double.infinity, child: FilledButton(
-          onPressed: () => _acceptOrder(order),
-          child: const Text('Принять заказ'),
-        )),
-      ]),
+      ),
     ),
   );
 
@@ -826,3 +827,102 @@ class DriverSectionPage extends StatelessWidget {
     ),
   );
 }
+
+class DriverIncomingOrderPage extends StatefulWidget {
+  const DriverIncomingOrderPage({super.key, required this.order, required this.pickupDistance, required this.onAccept});
+  final JibekOrderRequest order;
+  final String pickupDistance;
+  final Future<void> Function() onAccept;
+  @override
+  State<DriverIncomingOrderPage> createState() => _DriverIncomingOrderPageState();
+}
+
+class _DriverIncomingOrderPageState extends State<DriverIncomingOrderPage> {
+  int _seconds = 30;
+  Timer? _timer;
+  bool _accepting = false;
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_seconds <= 1) { timer.cancel(); setState(() => _seconds = 0); }
+      else { setState(() => _seconds--); }
+    });
+  }
+  @override
+  void dispose() { _timer?.cancel(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) {
+    final order = widget.order;
+    final commission = (order.priceKzt * .15).round();
+    final net = order.priceKzt - commission;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      appBar: AppBar(backgroundColor: const Color(0xFF0B1D4D), foregroundColor: Colors.white,
+        title: const Text('Новый заказ', style: TextStyle(fontWeight: FontWeight.w900))),
+      body: SafeArea(child: ListView(padding: const EdgeInsets.all(16), children: [
+        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF0B1D4D), borderRadius: BorderRadius.circular(18)),
+          child: Row(children: [
+            const Icon(Icons.timer_outlined, color: Color(0xFFFFD400), size: 30),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Время на решение', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+            Text('00:${_seconds.toString().padLeft(2,'0')}', style: const TextStyle(color: Color(0xFFFFD400), fontSize: 24, fontWeight: FontWeight.w900)),
+          ])),
+        const SizedBox(height: 14),
+        _pointCard('Забрать', order.pickup.address ?? 'Точка на карте', Icons.trip_origin_rounded, const Color(0xFF16834A)),
+        const SizedBox(height: 9),
+        _pointCard('Доставить', order.destination.address ?? 'Точка на карте', Icons.location_on_rounded, const Color(0xFFC62828)),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(child: _info('До подачи', widget.pickupDistance, Icons.near_me_rounded)),
+          const SizedBox(width: 8),
+          Expanded(child: _info('Услуга', order.service.name, Icons.local_taxi_rounded)),
+        ]),
+        const SizedBox(height: 14),
+        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Стоимость заказа', style: TextStyle(color: Color(0xFF687386), fontWeight: FontWeight.w700)),
+            Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Color(0xFF10243A))),
+            const Divider(height: 22),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('Ваш доход (расчёт 85%)'),
+              Text('$net ₸'.replaceFirst('$', ''), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF16834A))),
+            ]),
+            const SizedBox(height: 4),
+            Text('Комиссия 15% — $commission ₸'.replaceFirst('$', ''), style: const TextStyle(fontSize: 11, color: Color(0xFF687386))),
+          ])),
+        if (order.note != null && order.note!.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Card(color: Colors.white, child: Padding(padding: const EdgeInsets.all(14), child: Text('Комментарий: ${order.note}'))),
+        ],
+      ])),
+      bottomNavigationBar: SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 12), child: Row(children: [
+        Expanded(child: OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52), foregroundColor: const Color(0xFF10243A)),
+          child: const Text('Отказаться', style: TextStyle(fontWeight: FontWeight.w900)))),
+        const SizedBox(width: 10),
+        Expanded(child: FilledButton(
+          onPressed: _accepting || _seconds == 0 ? null : () async {
+            setState(() => _accepting = true);
+            await widget.onAccept();
+            if (mounted) Navigator.pop(context);
+          },
+          style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFD400), foregroundColor: const Color(0xFF10243A), minimumSize: const Size.fromHeight(52)),
+          child: Text(_accepting ? 'Принимаем…' : 'Принять', style: const TextStyle(fontWeight: FontWeight.w900)))),
+      ]))),
+    );
+  }
+  Widget _pointCard(String title, String address, IconData icon, Color color) => Card(color: Colors.white, elevation: 0,
+    child: ListTile(leading: Icon(icon, color: color, size: 28), title: Text(title, style: const TextStyle(fontSize: 11, color: Color(0xFF687386))),
+      subtitle: Text(address, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF10243A)))));
+  Widget _info(String title, String value, IconData icon) => Container(padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Icon(icon, color: const Color(0xFFB58A16)), const SizedBox(height: 5),
+      Text(title, style: const TextStyle(fontSize: 11, color: Color(0xFF687386))),
+      Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+    ]));
+}
+
