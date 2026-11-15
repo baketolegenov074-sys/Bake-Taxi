@@ -440,10 +440,10 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                   errorBuilder: (_, __, ___) => Icon(icon, size: 42, color: const Color(0xFF687386))),
               ),
               Text(title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF111827))),
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: Color(0xFF111827))),
               const SizedBox(height: 2),
               Text(prices[index], textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF111827))),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF111827))),
             ]),
             if (selected) const Positioned(right: 0, top: 0, child: CircleAvatar(
               radius: 11, backgroundColor: Color(0xFFFFC928),
@@ -586,13 +586,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           child: SizedBox(
             height: height,
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: 29, color: const Color(0xFF172B3A)),
+              Icon(icon, size: 21, color: const Color(0xFF172B3A)),
               const SizedBox(height: 6),
               Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
               const SizedBox(height: 2),
               Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10, color: Color(0xFF172B3A))),
+                style: const TextStyle(fontSize: 8, color: Color(0xFF172B3A))),
             ]),
           ),
         ),
@@ -615,16 +615,16 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     decoration: BoxDecoration(color: const Color(0xFFF1F3FA), borderRadius: BorderRadius.circular(16),
       border: Border.all(color: const Color(0xFFE4E8F2))),
     child: Row(children: [
-      Icon(icon, color: const Color(0xFF172B3A), size: 27),
+      Icon(icon, color: const Color(0xFF172B3A), size: 18),
       const SizedBox(width: 6),
       Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17))),
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12))),
           if (showInfo) const Icon(Icons.info_outline_rounded, size: 17, color: Color(0xFF173B6C)),
         ]),
         Text(label, maxLines: 2, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 11, color: Color(0xFF172033))),
+          style: const TextStyle(fontSize: 9, color: Color(0xFF172033))),
       ])),
     ]),
   );
@@ -682,13 +682,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                 Row(children: [
                   const Icon(Icons.location_on_rounded, color: Color(0xFF159447), size: 27),
                   const SizedBox(width: 8),
-                  const Text('Откуда:', style: TextStyle(fontSize: 16, color: Color(0xFF172033))),
+                  const Text('Откуда:', style: TextStyle(fontSize: 14, color: Color(0xFF172033))),
                   const SizedBox(width: 7),
                   Expanded(child: TextField(
                     controller: _fromController, focusNode: _fromFocusNode,
                     onSubmitted: (_) => _searchFrom(),
                     onChanged: (_) => setState(() { _fromPoint = null; _route = []; }),
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
                     decoration: const InputDecoration(
                       border: InputBorder.none, isDense: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 13),
@@ -698,7 +698,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints.tightFor(width: 32, height: 38),
                     onPressed: _searching ? null : _searchFrom,
-                    icon: const Icon(Icons.chevron_right_rounded, size: 30, color: Color(0xFF172033)),
+                    icon: const Icon(Icons.chevron_right_rounded, size: 21, color: Color(0xFF172033)),
                   ),
                 ]),
                 const Divider(height: 1, color: Color(0xFFE5E8EF)),
@@ -734,7 +734,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
         // Круглые кнопки карты располагаются непосредственно над панелью заказа.
         Positioned(
-          left: 16, bottom: size.height * .635,
+          left: 16, bottom: size.height * .255,
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
             child: IconButton(
@@ -758,7 +758,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
         // Заказная панель и нижние четыре блока закреплены внизу экрана.
         Positioned(
-          left: 0, right: 0, top: size.height * .365, bottom: 0,
+          left: 0, right: 0, top: size.height * .75, bottom: 0,
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -769,12 +769,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
               top: false,
               child: LayoutBuilder(builder: (context, constraints) {
                 final compact = constraints.maxHeight < 500;
-                final cardHeight = compact ? 116.0 : 136.0;
-                final metricHeight = compact ? 64.0 : 72.0;
-                final buttonHeight = compact ? 54.0 : 60.0;
-                final menuHeight = compact ? 70.0 : 78.0;
+                final cardHeight = compact ? 70.0 : 92.0;
+                final metricHeight = compact ? 48.0 : 58.0;
+                final buttonHeight = compact ? 46.0 : 52.0;
+                final menuHeight = compact ? 54.0 : 64.0;
                 return Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 5),
+                  padding: const EdgeInsets.only(top: 5, bottom: 2),
                   child: Column(
                     children: [
                       Padding(
@@ -783,12 +783,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                           Icon(Icons.directions_car_filled_rounded, size: 30, color: Color(0xFF172033)),
                           SizedBox(width: 9),
                           Text('Выберите класс авто',
-                            style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: Color(0xFF172033))),
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF172033))),
                         ]),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: SizedBox(
                           height: cardHeight,
                           child: Row(children: [
@@ -799,9 +799,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                           ]),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: SizedBox(
                           height: metricHeight,
                           child: Row(children: [
@@ -822,9 +822,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                           child: ClipRect(child: _passengerOrderPanel(_createdOrder!)),
                         ),
                       ],
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: SizedBox(
                           height: buttonHeight, width: double.infinity,
                           child: FilledButton(
@@ -848,9 +848,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                             ),
                             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                              const Icon(Icons.directions_car_filled_rounded, size: 30, color: Color(0xFF101827)),
+                              const Icon(Icons.directions_car_filled_rounded, size: 23, color: Color(0xFF101827)),
                               const SizedBox(width: 12),
-                              Text(_orderButtonLabel, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+                              Text(_orderButtonLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                             ]),
                           ),
                         ),
