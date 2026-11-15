@@ -18,6 +18,13 @@ class JibekPassengerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
+        builder: (context, child) {
+          final systemScale = MediaQuery.textScalerOf(context).scale(1.0).clamp(0.85, 1.05);
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(systemScale)),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         title: 'Bake Taxi',
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
@@ -376,30 +383,39 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         (index == 6 && _service == JibekServiceType.parcel) ||
         (index == 7 && _service == JibekServiceType.towTruck) ||
         (index == 8 && _service == JibekServiceType.mobileTire);
+    const iconColors = [
+      Color(0xFFFFC107), Color(0xFFE9EEF5), Color(0xFF252A34),
+      Color(0xFF4169A1), Color(0xFF2563EB), Color(0xFF687386),
+      Color(0xFF8B5CF6), Color(0xFFDC4A3D), Color(0xFF0F9D83),
+    ];
+    const prices = ['1 000 ₸', '1 200 ₸', '1 800 ₸', '2 500 ₸', 'от 5 000 ₸',
+      'от 3 000 ₸', 'от 1 000 ₸', 'от 4 000 ₸', 'от 1 500 ₸'];
     return GestureDetector(
       onTap: () => _selectOffer(index),
       child: Container(
-        width: 122,
-        margin: const EdgeInsets.only(right: 9),
-        padding: const EdgeInsets.fromLTRB(9, 10, 9, 9),
+        width: 108,
+        height: 96,
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.fromLTRB(6, 6, 6, 5),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFFFF9E5) : const Color(0xFFF5F6FA),
-          border: Border.all(color: selected ? const Color(0xFFFFC928) : const Color(0xFFE3E7EF), width: selected ? 2.5 : 1),
-          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: selected ? const Color(0xFFFFC928) : const Color(0xFFE3E7EF),
+            width: selected ? 2.5 : 1),
+          borderRadius: BorderRadius.circular(15),
         ),
         child: Stack(children: [
           Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 34, color: const Color(0xFF172B3A)),
-            const SizedBox(height: 7),
+            Icon(icon, size: 25, color: iconColors[index]),
+            const SizedBox(height: 2),
             Text(title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-            const SizedBox(height: 3),
-            Text(subtitle, textAlign: TextAlign.center, maxLines: 2,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF687386))),
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+            const SizedBox(height: 2),
+            Text(prices[index], textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
           ]),
           if (selected) const Positioned(right: 0, top: 0, child: CircleAvatar(
-            radius: 10, backgroundColor: Color(0xFFFFC928),
-            child: Icon(Icons.check_rounded, size: 14, color: Color(0xFF172B3A)),
+            radius: 8, backgroundColor: Color(0xFFFFC928),
+            child: Icon(Icons.check_rounded, size: 11, color: Color(0xFF172B3A)),
           )),
         ]),
       ),
@@ -429,26 +445,18 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       ]);
     }
     if (_service == JibekServiceType.intercity) {
-      const cities = ['Туркестан', 'Алматы', 'Тараз', 'Кызылорда', 'Астана'];
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Куда едем?', style: TextStyle(fontWeight: FontWeight.w800)),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<String>(
-          value: _intercityCity,
-          decoration: const InputDecoration(isDense: true, border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_city)),
-          items: cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
-          onChanged: (value) {
-            if (value == null) return;
-            setState(() { _intercityCity = value; _toController.text = value; _toPoint = null; _route = []; });
-          },
+      return Row(children: [
+        const Expanded(child: Text('Количество мест (1–4)',
+          style: TextStyle(fontWeight: FontWeight.w800))),
+        IconButton(
+          onPressed: _intercitySeats > 1 ? () => setState(() => _intercitySeats--) : null,
+          icon: const Icon(Icons.remove_circle_outline),
         ),
-        const SizedBox(height: 9),
-        Row(children: [
-          const Expanded(child: Text('Количество мест', style: TextStyle(fontWeight: FontWeight.w800))),
-          IconButton(onPressed: _intercitySeats > 1 ? () => setState(() => _intercitySeats--) : null, icon: const Icon(Icons.remove_circle_outline)),
-          Text('$_intercitySeats', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          IconButton(onPressed: _intercitySeats < 4 ? () => setState(() => _intercitySeats++) : null, icon: const Icon(Icons.add_circle_outline)),
-        ]),
+        Text('$_intercitySeats', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+        IconButton(
+          onPressed: _intercitySeats < 4 ? () => setState(() => _intercitySeats++) : null,
+          icon: const Icon(Icons.add_circle_outline),
+        ),
       ]);
     }
     if (_service == JibekServiceType.freight) {
@@ -549,7 +557,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
                     Text('Быстро. Надёжно. По-человечески!',
                       maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
+                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ])),
                   IconButton(onPressed: () => _message('Уведомления появятся после подключения сервера'),
                     icon: const Icon(Icons.notifications_none_rounded, color: Colors.white)),
@@ -601,8 +609,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           ),
         ),
         DraggableScrollableSheet(
-          initialChildSize: .52, minChildSize: .43, maxChildSize: .88,
-          snap: true, snapSizes: const [.52, .88],
+          initialChildSize: .70, minChildSize: .60, maxChildSize: .90,
+          snap: true, snapSizes: const [.70, .90],
           builder: (context, scrollController) => Container(
             decoration: const BoxDecoration(color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
@@ -619,12 +627,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                   Text('Выберите тариф или услугу', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                 ]),
                 const SizedBox(height: 10),
-                SizedBox(height: 112, child: ListView.builder(
+                SizedBox(height: 96, child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: 9,
                   itemBuilder: (context, index) {
                     const titles = ['Эконом', 'Комфорт', 'Бизнес', 'Минивэн', 'Межгород', 'Грузовой', 'Посылка', 'Эвакуатор', 'Шиномонтаж'];
-                    const subtitles = ['от 1 000 ₸', 'от 1 200 ₸', 'от 1 800 ₸', '6–7 мест', 'По РК', 'С грузчиками', 'От двери', 'Помощь на дороге', 'На выезд'];
+                    const subtitles = ['Седан', 'Седан', 'Седан', '6–7 мест', 'По РК', 'Грузовой', 'От двери', 'Помощь', 'Выезд'];
                     const icons = [Icons.directions_car_rounded, Icons.airline_seat_recline_extra_rounded,
                       Icons.directions_car_filled_rounded, Icons.airport_shuttle_rounded, Icons.route_rounded,
                       Icons.local_shipping_rounded, Icons.inventory_2_rounded, Icons.car_crash_rounded, Icons.build_circle_rounded];
