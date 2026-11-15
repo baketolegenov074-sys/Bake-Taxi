@@ -22,6 +22,7 @@ class PassengerHomePage extends StatefulWidget {
 }
 
 class _PassengerHomePageState extends State<PassengerHomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedTab = 0;
   String _currentAddress = '';
   bool _loadingAddress = false;
@@ -103,6 +104,7 @@ class _PassengerHomePageState extends State<PassengerHomePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    key: _scaffoldKey,
     backgroundColor: _page,
     drawer: const _PassengerDrawer(),
     body: SafeArea(
@@ -214,7 +216,7 @@ class _PassengerHomePageState extends State<PassengerHomePage> {
         if (index == 1 || index == 2) {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const PassengerProfilePage()));
         } else if (index == 3) {
-          Scaffold.of(context).openDrawer();
+          _scaffoldKey.currentState?.openDrawer();
         }
       },
       destinations: const [
