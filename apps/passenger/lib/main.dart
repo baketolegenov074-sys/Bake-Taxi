@@ -61,6 +61,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   final FocusNode _fromFocusNode = FocusNode();
   final FocusNode _toFocusNode = FocusNode();
   bool _addressFieldFocused = false;
+  bool _showCategoryWindow = false;
   int _selectedBottomTab = 0;
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _stopController = TextEditingController();
@@ -365,6 +366,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
   void _selectOffer(int index) {
     setState(() {
+      _showCategoryWindow = index >= 4;
       switch (index) {
         case 0: _service = JibekServiceType.cityTaxi; _class = 'Комфорт'; break;
         case 1: _service = JibekServiceType.cityTaxi; _class = 'Стандарт'; break;
@@ -640,6 +642,102 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     ]),
   );
 
+  Widget _buildCategoryWindow() {
+    final title = switch (_service) {
+      JibekServiceType.cityTaxi => 'Такси',
+      JibekServiceType.parcel => 'Доставка',
+      JibekServiceType.freight => 'Грузовой',
+      JibekServiceType.towTruck => 'Эвакуатор',
+      JibekServiceType.mobileTire => 'Шиномонтаж',
+      JibekServiceType.intercity => 'Межгород',
+    };
+    final icon = switch (_service) {
+      JibekServiceType.cityTaxi => Icons.local_taxi_rounded,
+      JibekServiceType.parcel => Icons.inventory_2_rounded,
+      JibekServiceType.freight => Icons.local_shipping_rounded,
+      JibekServiceType.towTruck => Icons.car_crash_rounded,
+      JibekServiceType.mobileTire => Icons.tire_repair_rounded,
+      JibekServiceType.intercity => Icons.route_rounded,
+    };
+    final places = const [
+      ('Коктал 26', 'Шымкент', '40 мин'),
+      ('Жиделибайсына 92', 'Шымкент', '14 мин'),
+      ('Алаш', 'Темирлановское ш., 198/7', '12 мин'),
+    ];
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, -4))],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Icon(icon, size: 32, color: const Color(0xFF172B3A)),
+                const SizedBox(width: 10),
+                Expanded(child: Text(title,
+                  style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Color(0xFF171717)))),
+              ]),
+              const SizedBox(height: 8),
+              Material(
+                color: const Color(0xFFEEEEEE),
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    setState(() => _showCategoryWindow = false);
+                    _toFocusNode.requestFocus();
+                  },
+                  child: const SizedBox(
+                    height: 56,
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text('Куда едем?', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF222222))),
+                      SizedBox(width: 12),
+                      Icon(Icons.arrow_circle_right, size: 25, color: Color(0xFF222222)),
+                    ]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Expanded(
+                child: ListView.separated(
+                  padding: EdgeInsets.zero,
+                  itemCount: places.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1, indent: 74, color: Color(0xFFE8E8E8)),
+                  itemBuilder: (context, index) {
+                    final place = places[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                      leading: Container(
+                        width: 54, height: 54,
+                        decoration: BoxDecoration(color: const Color(0xFFF0F0F0), borderRadius: BorderRadius.circular(15)),
+                        child: Icon(index == 2 ? Icons.storefront_rounded : Icons.location_on_rounded,
+                          size: 29, color: const Color(0xFF929292)),
+                      ),
+                      title: Text(place.$1, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                      subtitle: Text(place.$2, style: const TextStyle(fontSize: 15, color: Color(0xFF929292))),
+                      trailing: Text(place.$3, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF929292))),
+                      onTap: () {
+                        _toController.text = '${place.$1}, ${place.$2}';
+                        setState(() => _showCategoryWindow = false);
+                        _toFocusNode.requestFocus();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -678,8 +776,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           ],
         ),
 
-        // Верхняя адресная плашка — остаётся поверх карты и не прокручивается.
-        SafeArea(
+        // Адресная плашка нужна на основном экране; при открытой категории карта остаётся чистой.
+        if (!_showCategoryWindow) SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 7, 12, 0),
             child: Container(
@@ -749,8 +847,11 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
             child: IconButton(
-              onPressed: _locating ? null : _findMe,
-              icon: const Icon(Icons.navigation_rounded, size: 27, color: Color(0xFF172033)),
+              onPressed: _showCategoryWindow
+                  ? () => setState(() => _showCategoryWindow = false)
+                  : (_locating ? null : _findMe),
+              icon: Icon(_showCategoryWindow ? Icons.arrow_back_rounded : Icons.navigation_rounded,
+                  size: 27, color: const Color(0xFF172033)),
               iconSize: 46, padding: const EdgeInsets.all(13),
             ),
           ),
@@ -770,7 +871,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         // Заказная панель и нижние четыре блока закреплены внизу экрана.
         Positioned(
           left: 0, right: 0, top: size.height * .60, bottom: 0,
-          child: Container(
+          child: _showCategoryWindow
+              ? _buildCategoryWindow()
+              : Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -1245,4 +1348,3 @@ class BakeHelpPage extends StatelessWidget {
     ]))),
   );
 }
-
