@@ -228,6 +228,19 @@ jobs:
           print(f"Configured app label: {app_label}")
           PY
 
+              # flutter create generates a sample counter test for a class named MyApp.
+              # This app has its own entrypoint and root widget; remove only that untouched template.
+              python3 - <<'PY'
+          import pathlib
+
+          sample_test = pathlib.Path("test/widget_test.dart")
+          if sample_test.is_file():
+              content = sample_test.read_text(encoding="utf-8")
+              if "Counter increments" in content and "MyApp" in content:
+                  sample_test.unlink()
+                  print("Removed Flutter-generated sample widget test (not an app test).")
+          PY
+
               flutter pub get
               flutter analyze
               flutter build apk --release
