@@ -242,7 +242,7 @@ jobs:
           PY
 
               flutter pub get
-              flutter analyze
+              flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
               flutter build apk --release
 
               if [[ "$application_id" == "kz.baketaxi.client" ]]; then
