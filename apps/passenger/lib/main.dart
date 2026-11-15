@@ -513,6 +513,25 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
+  Widget _quickTile(BuildContext context, String title, IconData icon, Color tint, VoidCallback onTap) =>
+      Material(
+        color: tint,
+        borderRadius: BorderRadius.circular(13),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(13),
+          child: SizedBox(
+            height: 62,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, size: 23, color: const Color(0xFF172B3A)),
+              const SizedBox(height: 4),
+              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
+            ]),
+          ),
+        ),
+      );
+
   Widget _compactSummary(IconData icon, String value) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
@@ -704,6 +723,24 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                         child: Text(_orderButtonLabel, maxLines: 1, softWrap: false,
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
                     )),
+                    const SizedBox(height: 9),
+                    Row(children: [
+                      Expanded(child: _quickTile(context, 'Доставка', Icons.inventory_2_rounded,
+                        const Color(0xFFFFF0C2), () => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const PassengerMapPage(initialService: JibekServiceType.parcel))))),
+                      const SizedBox(width: 7),
+                      Expanded(child: _quickTile(context, 'Услуги', Icons.build_circle_rounded,
+                        const Color(0xFFE5F1FF), () => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const BakeServicesPage())))),
+                      const SizedBox(width: 7),
+                      Expanded(child: _quickTile(context, 'Межгород', Icons.route_rounded,
+                        const Color(0xFFE6F5EA), () => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const IntercityPage())))),
+                      const SizedBox(width: 7),
+                      Expanded(child: _quickTile(context, 'Помощь', Icons.support_agent_rounded,
+                        const Color(0xFFF2EAFE), () => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const BakeHelpPage())))),
+                    ]),
                   ],
                 ),
               ),
@@ -998,3 +1035,54 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 }
+
+class BakeServicesPage extends StatelessWidget {
+  const BakeServicesPage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFF4F6F9),
+    appBar: AppBar(title: const Text('Услуги'), backgroundColor: Colors.white, foregroundColor: const Color(0xFF172B3A)),
+    body: ListView(padding: const EdgeInsets.all(16), children: [
+      const Text('Помощь на дороге и для дома', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 12),
+      _service('Эвакуатор', Icons.car_crash_rounded, JibekServiceType.towTruck, context),
+      _service('Шиномонтаж', Icons.tire_repair_rounded, JibekServiceType.mobileTire, context),
+      _service('Автоэлектрик', Icons.electrical_services_rounded, JibekServiceType.mobileTire, context),
+      _service('Сантехник', Icons.plumbing_rounded, JibekServiceType.mobileTire, context),
+      _service('Электрик', Icons.bolt_rounded, JibekServiceType.mobileTire, context),
+    ]),
+  );
+  Widget _service(String title, IconData icon, JibekServiceType type, BuildContext context) => Card(
+    color: Colors.white, elevation: 0, margin: const EdgeInsets.only(bottom: 9),
+    child: ListTile(leading: CircleAvatar(backgroundColor: const Color(0xFFFFF0C2), child: Icon(icon, color: const Color(0xFF172B3A))),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PassengerMapPage(initialService: type, initialNote: title)))),
+  );
+}
+
+class BakeHelpPage extends StatelessWidget {
+  const BakeHelpPage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFF4F6F9),
+    appBar: AppBar(title: const Text('Помощь 24/7'), backgroundColor: Colors.white, foregroundColor: const Color(0xFF172B3A)),
+    body: Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+      const Icon(Icons.support_agent_rounded, size: 64, color: Color(0xFF172B3A)),
+      const SizedBox(height: 12),
+      const Text('Поддержка Bake Taxi', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 8),
+      const Text('Служба поддержки работает круглосуточно. Связь с оператором будет доступна после подключения канала поддержки.',
+        textAlign: TextAlign.center),
+      const SizedBox(height: 18),
+      SizedBox(width: double.infinity, child: FilledButton.icon(
+        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Канал поддержки ещё не подключён'))),
+        icon: const Icon(Icons.headset_mic_rounded), label: const Text('Связаться с поддержкой'))),
+      const SizedBox(height: 8),
+      SizedBox(width: double.infinity, child: OutlinedButton.icon(
+        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Экстренный вызов SOS пока не подключён'))),
+        icon: const Icon(Icons.sos_rounded), label: const Text('SOS'))),
+    ]))),
+  );
+}
+
