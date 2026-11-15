@@ -206,6 +206,8 @@ class _TariffsPageState extends State<TariffsPage> {
     'Такси · Подача (₸)': TextEditingController(text: '300'),
     'Комфорт · надбавка (%)': TextEditingController(text: '15'),
     'Бизнес · надбавка (%)': TextEditingController(text: '30'),
+    'Минивэн · базовая цена (₸)': TextEditingController(text: '2500'),
+    'Минивэн · надбавка (%)': TextEditingController(text: '50'),
     'Межгород · место (₸)': TextEditingController(),
     'Межгород · весь салон (₸)': TextEditingController(),
     'Посылка · базовая цена (₸)': TextEditingController(),
