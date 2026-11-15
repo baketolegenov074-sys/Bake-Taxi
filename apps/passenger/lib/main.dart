@@ -520,7 +520,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           options: MapOptions(initialCenter: _shymkent, initialZoom: 13, onTap: _selectMapPoint),
           children: [
             TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'kz.bakytaxi.passenger'),
+              userAgentPackageName: 'kz.jibekzholy.passenger'),
             if (_route.isNotEmpty)
               PolylineLayer(polylines: [Polyline(points: _route, strokeWidth: 5,
                 color: const Color(0xFF1557D5), borderStrokeWidth: 1.5, borderColor: Colors.white)]),
@@ -627,7 +627,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     const subtitles = ['от 1 000 ₸', 'от 1 200 ₸', 'от 1 800 ₸', '6–7 мест', 'По РК', 'С грузчиками', 'От двери', 'Помощь на дороге', 'На выезд'];
                     const icons = [Icons.directions_car_rounded, Icons.airline_seat_recline_extra_rounded,
                       Icons.directions_car_filled_rounded, Icons.airport_shuttle_rounded, Icons.route_rounded,
-                      Icons.local_shipping_rounded, Icons.inventory_2_rounded, Icons.car_crash_rounded, Icons.tire_repair_rounded];
+                      Icons.local_shipping_rounded, Icons.inventory_2_rounded, Icons.car_crash_rounded, Icons.build_circle_rounded];
                     return _offerCard(index, titles[index], subtitles[index], icons[index]);
                   },
                 )),
@@ -747,7 +747,6 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     final orderNote = [
       _noteController.text.trim(),
       if (_childSeat) 'Детское кресло',
-      if (_needMovers) 'Нужны грузчики',
       if (_service == JibekServiceType.freight) 'Грузовой заказ',
       if (_service == JibekServiceType.intercity) 'Межгород: $_intercityCity; мест: $_intercitySeats',
       if (_needMovers) 'Нужны грузчики',
