@@ -573,7 +573,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
-  Widget _quickTile(BuildContext context, String title, IconData icon, Color tint, VoidCallback onTap) =>
+  Widget _quickTile(BuildContext context, String title, String subtitle, IconData icon, Color tint, VoidCallback onTap) =>
       Material(
         color: tint,
         borderRadius: BorderRadius.circular(13),
@@ -587,6 +587,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
               const SizedBox(height: 6),
               Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
+              const SizedBox(height: 2),
+              Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 10, color: Color(0xFF172B3A))),
             ]),
           ),
         ),
@@ -763,9 +766,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     ]),
                     const SizedBox(height: 12),
                     Row(children: [
-                      Expanded(child: _metricTile(Icons.access_time_rounded, _durationLabel ?? '≈ 8 мин', 'Время подачи')),
+                      Expanded(child: _metricTile(Icons.access_time_rounded, _durationLabel ?? '— мин', 'Время подачи')),
                       const SizedBox(width: 6),
-                      Expanded(child: _metricTile(Icons.route_rounded, _distanceLabel ?? '2.7 км', 'Расстояние')),
+                      Expanded(child: _metricTile(Icons.route_rounded, _distanceLabel ?? '— км', 'Расстояние')),
                       const SizedBox(width: 6),
                       Expanded(child: _metricTile(Icons.credit_card_rounded,
                         '${_estimatedTaxiFare + (_boostSelected ? 250 : 0)} ₸', 'Итого к оплате')),
@@ -806,19 +809,19 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     ),
                     const SizedBox(height: 12),
                     Row(children: [
-                      Expanded(child: _quickTile(context, 'Доставка', Icons.inventory_2_rounded,
+                      Expanded(child: _quickTile(context, 'Доставка', 'Посылки и товары', Icons.inventory_2_rounded,
                         const Color(0xFFE9E3FF), () => Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const PassengerMapPage(initialService: JibekServiceType.parcel))))),
                       const SizedBox(width: 7),
-                      Expanded(child: _quickTile(context, 'Услуги', Icons.build_rounded,
+                      Expanded(child: _quickTile(context, 'Услуги', 'Эвакуатор, мастер…', Icons.build_rounded,
                         const Color(0xFFD9F5EC), () => Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const BakeServicesPage())))),
                       const SizedBox(width: 7),
-                      Expanded(child: _quickTile(context, 'Межгород', Icons.route_rounded,
+                      Expanded(child: _quickTile(context, 'Межгород', 'Поездки по РК', Icons.route_rounded,
                         const Color(0xFFDCEBFF), () => Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const IntercityPage())))),
                       const SizedBox(width: 7),
-                      Expanded(child: _quickTile(context, 'Помощь', Icons.headset_mic_rounded,
+                      Expanded(child: _quickTile(context, 'Помощь', 'Поддержка 24/7', Icons.headset_mic_rounded,
                         const Color(0xFFFFE3D4), () => Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const BakeHelpPage())))),
                     ]),
