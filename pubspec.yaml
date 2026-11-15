@@ -1,5 +1,5 @@
-name: jibek_zholy_taxi
-description: JIBEK ZHOLY TAXI - Client, Driver and Owner applications
+name: bake_taxi
+description: Bake Taxi - Client, Driver and Owner applications
 publish_to: 'none'
 
 version: 1.0.0+1
