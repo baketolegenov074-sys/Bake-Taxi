@@ -416,14 +416,25 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
   Widget _offerCard(int index, String title, String subtitle, IconData icon, {double height = 142}) {
     final selected = _service == JibekServiceType.cityTaxi && _class == title;
-    const prices = ['1 200 ₸', '1 000 ₸', '1 800 ₸', '2 500 ₸'];
-    const assets = ['econom.png', 'image_6681a04f.jpg', 'business.png', 'image_1e1f99f5.jpg'];
-    return Expanded(
+    const prices = ['1 200 ₸', '1 000 ₸', '1 800 ₸', '2 500 ₸', 'По тарифу', 'По тарифу', 'По тарифу', 'По тарифу', 'По тарифу'];
+    const assets = [
+      'econom.png',
+      'image_6681a04f.jpg',
+      'business.png',
+      'image_1e1f99f5.jpg',
+      'cargo.png',
+      'delivery.png',
+      'tow.png',
+      'tire.png',
+      'intercity.png',
+    ];
+    return SizedBox(
+      width: 118,
       child: GestureDetector(
         onTap: () => _selectOffer(index),
         child: Container(
           height: height,
-          margin: EdgeInsets.only(right: index == 3 ? 0 : 6),
+          margin: const EdgeInsets.only(right: 7),
           padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
           decoration: BoxDecoration(
             color: selected ? const Color(0xFFFFFDF5) : const Color(0xFFF3F5FB),
@@ -791,12 +802,21 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: SizedBox(
                           height: cardHeight,
-                          child: Row(children: [
-                            _offerCard(0, 'Комфорт', 'Седан', Icons.directions_car_rounded, height: cardHeight),
-                            _offerCard(1, 'Стандарт', 'Седан', Icons.directions_car_rounded, height: cardHeight),
-                            _offerCard(2, 'Бизнес', 'Седан', Icons.directions_car_filled_rounded, height: cardHeight),
-                            _offerCard(3, 'Минивэн', '6–7 мест', Icons.airport_shuttle_rounded, height: cardHeight),
-                          ]),
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.only(right: 2),
+                            children: [
+                              _offerCard(0, 'Комфорт', 'Седан', Icons.directions_car_rounded, height: cardHeight),
+                              _offerCard(1, 'Стандарт', 'Седан', Icons.directions_car_rounded, height: cardHeight),
+                              _offerCard(2, 'Бизнес', 'Седан', Icons.directions_car_filled_rounded, height: cardHeight),
+                              _offerCard(3, 'Минивэн', '6–7 мест', Icons.airport_shuttle_rounded, height: cardHeight),
+                              _offerCard(5, 'Грузовой', 'Грузовик', Icons.local_shipping_rounded, height: cardHeight),
+                              _offerCard(6, 'Доставка', 'Посылка', Icons.inventory_2_rounded, height: cardHeight),
+                              _offerCard(7, 'Эвакуатор', 'Помощь', Icons.car_crash_rounded, height: cardHeight),
+                              _offerCard(8, 'Шиномонтаж', 'Колесо и домкрат', Icons.tire_repair_rounded, height: cardHeight),
+                              _offerCard(4, 'Межгород', 'Поездки', Icons.route_rounded, height: cardHeight),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),
