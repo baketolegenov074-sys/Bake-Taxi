@@ -625,8 +625,10 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final editingAddress = keyboardOpen || _addressFieldFocused;
+    // Keep the passenger order sheet visible whenever the keyboard is closed.
+    // Focus can remain on a TextField after the Android keyboard is dismissed,
+    // so focus alone must never hide the vehicle cards and order controls.
+    final editingAddress = MediaQuery.viewInsetsOf(context).bottom > 0;
     final markers = <Marker>[
       if (_fromPoint != null)
         Marker(point: _fromPoint!, width: 42, height: 42,
