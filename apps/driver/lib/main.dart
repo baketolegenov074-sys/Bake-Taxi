@@ -38,7 +38,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
   LatLng? _driverPoint;
   bool _online = false;
   bool _loadingLocation = false;
-  final Set<String> _services = {'Такси', 'Межгород', 'Посылки', 'Грузовой', 'Эвакуатор', 'Шиномонтаж'};
+  final Set<String> _services = {'Такси', 'Минивэн', 'Межгород', 'Посылки', 'Грузовой', 'Эвакуатор', 'Шиномонтаж'};
   List<JibekOrderRequest> _orders = [];
   JibekOrderRequest? _activeOrder;
   bool _loadingOrders = false;
@@ -367,6 +367,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
   Set<JibekServiceType> get _selectedServices {
     const mapping = {
       'Такси': JibekServiceType.cityTaxi,
+      'Минивэн': JibekServiceType.cityTaxi,
       'Межгород': JibekServiceType.intercity,
       'Посылки': JibekServiceType.parcel,
       'Грузовой': JibekServiceType.freight,
@@ -445,6 +446,9 @@ class _DriverMapPageState extends State<DriverMapPage> {
       } else {
         final orders =
             await repository.getAvailableOrders(services: _selectedServices);
+        if (_services.contains('Минивэн') && !_services.contains('Такси')) {
+          orders.removeWhere((order) => order.service == JibekServiceType.cityTaxi && order.vehicleClass != 'Минивэн');
+        }
         final driverPoint = _driverPoint;
         if (driverPoint != null) {
           orders.sort((a, b) => Geolocator.distanceBetween(
