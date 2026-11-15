@@ -807,14 +807,10 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         // Адресная плашка нужна на основном экране; при открытой категории карта остаётся чистой.
         if (!_showCategoryWindow) SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 7, 12, 0),
+            padding: const EdgeInsets.fromLTRB(12, 2, 12, 0),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 3))],
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              color: Colors.transparent,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Row(children: [
                   const Icon(Icons.location_on_rounded, color: Color(0xFF159447), size: 27),
@@ -828,7 +824,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
                     decoration: const InputDecoration(
                       border: InputBorder.none, isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 13),
+                      contentPadding: EdgeInsets.symmetric(vertical: 10),
                     ),
                   )),
                   IconButton(
@@ -898,7 +894,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
         // Заказная панель и нижние четыре блока закреплены внизу экрана.
         Positioned(
-          left: 0, right: 0, top: size.height * .60, bottom: 0,
+          left: 0, right: 0, top: size.height * .55, bottom: 0,
           child: _showCategoryWindow
               ? _buildCategoryWindow()
               : Container(
