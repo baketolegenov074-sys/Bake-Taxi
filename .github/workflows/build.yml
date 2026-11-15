@@ -24,8 +24,8 @@ jobs:
       - name: Verify selected branch
         shell: bash
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/safe-rename-bake-taxi" ]]; then
-            echo "::error::Select the safe-rename-bake-taxi branch in Run workflow. No files were changed."
+          if [[ "$GITHUB_REF" != "refs/heads/safe-rename-bake-taxi" && "$GITHUB_REF" != "refs/heads/passenger-yandex-screen" ]]; then
+            echo "::error::Select safe-rename-bake-taxi or passenger-yandex-screen in Run workflow. No files were changed."
             exit 1
           fi
 
