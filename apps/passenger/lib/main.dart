@@ -417,7 +417,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   Widget _offerCard(int index, String title, String subtitle, IconData icon, {double height = 142}) {
     final selected = _service == JibekServiceType.cityTaxi && _class == title;
     const prices = ['1 200 ₸', '1 000 ₸', '1 800 ₸', '2 500 ₸'];
-    const assets = ['comfort.png', 'econom.png', 'business.png', 'minivan.png'];
+    const assets = ['econom.png', 'image_6681a04f.jpg', 'business.png', 'image_1e1f99f5.jpg'];
     return Expanded(
       child: GestureDetector(
         onTap: () => _selectOffer(index),
@@ -734,7 +734,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
         // Круглые кнопки карты располагаются непосредственно над панелью заказа.
         Positioned(
-          left: 16, bottom: size.height * .255,
+          left: 16, bottom: size.height * .405,
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
             child: IconButton(
@@ -745,7 +745,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           ),
         ),
         Positioned(
-          right: 16, bottom: size.height * .255,
+          right: 16, bottom: size.height * .405,
           child: Material(
             color: Colors.white, elevation: 5, shape: const CircleBorder(),
             child: IconButton(
@@ -758,7 +758,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
         // Заказная панель и нижние четыре блока закреплены внизу экрана.
         Positioned(
-          left: 0, right: 0, top: size.height * .75, bottom: 0,
+          left: 0, right: 0, top: size.height * .60, bottom: 0,
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
