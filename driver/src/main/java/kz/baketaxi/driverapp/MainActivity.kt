@@ -1,4 +1,4 @@
-package kz.jibekzholy.driver
+package kz.baketaxi.driverapp
 
 import android.Manifest
 import android.app.Activity

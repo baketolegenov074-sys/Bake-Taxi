@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jibek_shared/jibek_shared.dart';
+import 'package:bake_taxi_shared/bake_taxi_shared.dart';
 
 void main() {
-  group('DevJibekApiRepository active driver order', () {
+  group('DevBakeTaxiApiRepository active driver order', () {
     test('restores active order and sends development identity header', () async {
       late http.Request captured;
       final client = MockClient((request) async {
@@ -24,7 +24,7 @@ void main() {
           headers: {'content-type': 'application/json; charset=utf-8'},
         );
       });
-      final repository = DevJibekApiRepository(
+      final repository = DevBakeTaxiApiRepository(
         baseUrl: 'https://api.example.test',
         devUserIdProvider: () async => 'driver-1',
         client: client,
@@ -35,7 +35,7 @@ void main() {
       expect(captured.url.path, '/v1/driver/orders/active');
       expect(captured.headers['X-Dev-User-Id'], 'driver-1');
       expect(order?.id, 'order-123');
-      expect(order?.status, JibekOrderStatus.inProgress);
+      expect(order?.status, BakeTaxiOrderStatus.inProgress);
       repository.close();
     });
 
@@ -43,7 +43,7 @@ void main() {
       final client = MockClient(
         (_) async => http.Response('null', 200),
       );
-      final repository = DevJibekApiRepository(
+      final repository = DevBakeTaxiApiRepository(
         baseUrl: 'https://api.example.test',
         devUserIdProvider: () async => 'driver-1',
         client: client,
@@ -60,7 +60,7 @@ void main() {
         return http.Response('{"ok":true}', 200,
             headers: {'content-type': 'application/json; charset=utf-8'});
       });
-      final repository = DevJibekApiRepository(
+      final repository = DevBakeTaxiApiRepository(
         baseUrl: 'https://api.example.test',
         devUserIdProvider: () async => 'driver-7',
         client: client,
@@ -68,7 +68,7 @@ void main() {
 
       await repository.updateDriverPresence(
         isOnline: true,
-        services: {JibekServiceType.cityTaxi, JibekServiceType.parcel},
+        services: {BakeTaxiServiceType.cityTaxi, BakeTaxiServiceType.parcel},
       );
 
       expect(captured.method, 'PUT');
@@ -91,7 +91,7 @@ void main() {
         sent = true;
         return http.Response('null', 200);
       });
-      final repository = DevJibekApiRepository(
+      final repository = DevBakeTaxiApiRepository(
         baseUrl: 'https://api.example.test',
         devUserIdProvider: () async => '',
         client: client,
@@ -99,7 +99,7 @@ void main() {
 
       await expectLater(
         repository.getActiveDriverOrder(),
-        throwsA(isA<JibekApiException>()),
+        throwsA(isA<BakeTaxiApiException>()),
       );
       expect(sent, isFalse);
       repository.close();

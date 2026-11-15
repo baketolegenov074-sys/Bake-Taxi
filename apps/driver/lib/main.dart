@@ -4,22 +4,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:jibek_shared/jibek_shared.dart';
+import 'package:bake_taxi_shared/bake_taxi_shared.dart';
 import 'package:latlong2/latlong.dart';
 import 'permissions/startup_permissions.dart';
 import 'driver_profile_page.dart';
 import 'driver_search_settings.dart';
 
-void main() => runApp(const JibekDriverApp());
+void main() => runApp(const BakeTaxiDriverApp());
 
-class JibekDriverApp extends StatelessWidget {
-  const JibekDriverApp({super.key});
+class BakeTaxiDriverApp extends StatelessWidget {
+  const BakeTaxiDriverApp({super.key});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'Bake Taxi Водитель',
         debugShowCheckedModeBanner: false,
-        theme: JibekTheme.light(),
+        theme: BakeTaxiTheme.light(),
         home: const DriverAppShell(),
       );
 }
@@ -38,11 +38,11 @@ class _DriverMapPageState extends State<DriverMapPage> {
   bool _online = false;
   bool _loadingLocation = false;
   final Set<String> _services = {'Такси', 'Межгород', 'Посылки', 'Грузовой', 'Эвакуатор', 'Шиномонтаж'};
-  List<JibekOrderRequest> _orders = [];
-  JibekOrderRequest? _activeOrder;
+  List<BakeTaxiOrderRequest> _orders = [];
+  BakeTaxiOrderRequest? _activeOrder;
   bool _loadingOrders = false;
-  static const _apiUrl = String.fromEnvironment('JIBEK_API_URL');
-  static const _devUserId = String.fromEnvironment('JIBEK_DEV_USER_ID');
+  static const _apiUrl = String.fromEnvironment('BAKE_TAXI_API_URL', defaultValue: String.fromEnvironment('JIBEK_API_URL'));
+  static const _devUserId = String.fromEnvironment('BAKE_TAXI_DEV_USER_ID', defaultValue: String.fromEnvironment('JIBEK_DEV_USER_ID'));
 
   @override
   void initState() {
@@ -125,7 +125,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
                       ? 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
                       : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   subdomains: _alternateMap ? const ['a', 'b', 'c'] : const [],
-                  userAgentPackageName: 'kz.jibekzholy.driverapp',
+                  userAgentPackageName: 'kz.baketaxi.driverapp',
                 ),
                 MarkerLayer(markers: markers),
                 const RichAttributionWidget(
@@ -363,14 +363,14 @@ class _DriverMapPageState extends State<DriverMapPage> {
 
 
 
-  Set<JibekServiceType> get _selectedServices {
+  Set<BakeTaxiServiceType> get _selectedServices {
     const mapping = {
-      'Такси': JibekServiceType.cityTaxi,
-      'Межгород': JibekServiceType.intercity,
-      'Посылки': JibekServiceType.parcel,
-      'Грузовой': JibekServiceType.freight,
-      'Эвакуатор': JibekServiceType.towTruck,
-      'Шиномонтаж': JibekServiceType.mobileTire,
+      'Такси': BakeTaxiServiceType.cityTaxi,
+      'Межгород': BakeTaxiServiceType.intercity,
+      'Посылки': BakeTaxiServiceType.parcel,
+      'Грузовой': BakeTaxiServiceType.freight,
+      'Эвакуатор': BakeTaxiServiceType.towTruck,
+      'Шиномонтаж': BakeTaxiServiceType.mobileTire,
     };
     return _services.map((label) => mapping[label]!).toSet();
   }
@@ -384,7 +384,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
       _notice('Выберите хотя бы одну услугу');
       return;
     }
-    final repository = DevJibekApiRepository(
+    final repository = DevBakeTaxiApiRepository(
       baseUrl: _apiUrl,
       devUserIdProvider: () async => _devUserId,
     );
@@ -392,7 +392,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
     try {
       await repository.updateDriverPresence(
         isOnline: value,
-        services: value ? _selectedServices : <JibekServiceType>{},
+        services: value ? _selectedServices : <BakeTaxiServiceType>{},
       );
       if (!mounted) return;
       setState(() {
@@ -414,7 +414,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
           ? 'Вы на линии. Статус сохранён на сервере.'
           : 'Вы отключились от линии.');
       if (value) await _refreshOrders(manageLoading: false);
-    } on JibekApiException catch (error) {
+    } on BakeTaxiApiException catch (error) {
       _notice('Не удалось изменить статус: ${error.message}');
     } catch (_) {
       _notice('Нет связи с сервером. Статус не изменён.');
@@ -431,7 +431,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
       return;
     }
     if (manageLoading) setState(() => _loadingOrders = true);
-    final repository = DevJibekApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
+    final repository = DevBakeTaxiApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
     try {
       final active = await repository.getActiveDriverOrder();
       if (active != null) {
@@ -461,7 +461,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
           });
         }
       }
-    } on JibekApiException catch (e) {
+    } on BakeTaxiApiException catch (e) {
       _notice('Ошибка загрузки: ' + e.message);
     } catch (_) {
       _notice('Нет связи с сервером');
@@ -471,7 +471,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
     }
   }
 
-  Widget _orderCard(JibekOrderRequest order) => Card(
+  Widget _orderCard(BakeTaxiOrderRequest order) => Card(
     margin: const EdgeInsets.only(bottom: 10),
     child: Padding(
       padding: const EdgeInsets.all(14),
@@ -500,15 +500,15 @@ class _DriverMapPageState extends State<DriverMapPage> {
     ),
   );
 
-  String _pickupDistance(JibekOrderRequest order) {
+  String _pickupDistance(BakeTaxiOrderRequest order) {
     final point = _driverPoint;
     if (point == null) return 'геолокация недоступна';
     final meters = Geolocator.distanceBetween(point.latitude, point.longitude, order.pickup.latitude, order.pickup.longitude);
     return meters >= 1000 ? '${(meters / 1000).toStringAsFixed(1)} км' : '${meters.round()} м';
   }
 
-  Future<void> _acceptOrder(JibekOrderRequest order) async {
-    final repository = DevJibekApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
+  Future<void> _acceptOrder(BakeTaxiOrderRequest order) async {
+    final repository = DevBakeTaxiApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
     try {
       final accepted = await repository.acceptOrder(orderId: order.id);
       if (!mounted) return;
@@ -517,7 +517,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
         _activeOrder = accepted;
       });
       _notice('Заказ принят');
-    } on JibekApiException catch (e) {
+    } on BakeTaxiApiException catch (e) {
       _notice('Не удалось принять: ' + e.message);
       _refreshOrders();
     } catch (_) {
@@ -528,47 +528,47 @@ class _DriverMapPageState extends State<DriverMapPage> {
   }
 
 
-  JibekOrderStatus? _nextStatus(JibekOrderStatus status) {
+  BakeTaxiOrderStatus? _nextStatus(BakeTaxiOrderStatus status) {
     switch (status) {
-      case JibekOrderStatus.accepted:
-        return JibekOrderStatus.driverArriving;
-      case JibekOrderStatus.driverArriving:
-        return JibekOrderStatus.inProgress;
-      case JibekOrderStatus.inProgress:
-        return JibekOrderStatus.completed;
+      case BakeTaxiOrderStatus.accepted:
+        return BakeTaxiOrderStatus.driverArriving;
+      case BakeTaxiOrderStatus.driverArriving:
+        return BakeTaxiOrderStatus.inProgress;
+      case BakeTaxiOrderStatus.inProgress:
+        return BakeTaxiOrderStatus.completed;
       default:
         return null;
     }
   }
 
-  String _serviceLabel(JibekServiceType service) {
+  String _serviceLabel(BakeTaxiServiceType service) {
     switch (service) {
-      case JibekServiceType.cityTaxi:
+      case BakeTaxiServiceType.cityTaxi:
         return 'Городское такси';
-      case JibekServiceType.intercity:
+      case BakeTaxiServiceType.intercity:
         return 'Межгород';
-      case JibekServiceType.parcel:
+      case BakeTaxiServiceType.parcel:
         return 'Доставка посылки';
-      case JibekServiceType.freight:
+      case BakeTaxiServiceType.freight:
         return 'Грузовой';
-      case JibekServiceType.towTruck:
+      case BakeTaxiServiceType.towTruck:
         return 'Эвакуатор';
-      case JibekServiceType.mobileTire:
+      case BakeTaxiServiceType.mobileTire:
         return 'Выездной шиномонтаж';
     }
   }
 
-  String _statusLabel(JibekOrderStatus status) {
+  String _statusLabel(BakeTaxiOrderStatus status) {
     switch (status) {
-      case JibekOrderStatus.accepted: return 'Заказ принят';
-      case JibekOrderStatus.driverArriving: return 'Водитель едет к пассажиру';
-      case JibekOrderStatus.inProgress: return 'Поездка началась';
-      case JibekOrderStatus.completed: return 'Поездка завершена';
+      case BakeTaxiOrderStatus.accepted: return 'Заказ принят';
+      case BakeTaxiOrderStatus.driverArriving: return 'Водитель едет к пассажиру';
+      case BakeTaxiOrderStatus.inProgress: return 'Поездка началась';
+      case BakeTaxiOrderStatus.completed: return 'Поездка завершена';
       default: return status.name;
     }
   }
 
-  Widget _activeOrderCard(JibekOrderRequest order) {
+  Widget _activeOrderCard(BakeTaxiOrderRequest order) {
     final next = _nextStatus(order.status);
     return Card(
       color: const Color(0xFFEAF5F1),
@@ -592,7 +592,7 @@ class _DriverMapPageState extends State<DriverMapPage> {
             const SizedBox(height: 10),
             SizedBox(width: double.infinity, child: FilledButton(
               onPressed: () => _advanceOrder(order, next),
-              child: Text(next == JibekOrderStatus.driverArriving ? 'Я выехал к пассажиру' : next == JibekOrderStatus.inProgress ? 'Начать поездку' : 'Завершить поездку'),
+              child: Text(next == BakeTaxiOrderStatus.driverArriving ? 'Я выехал к пассажиру' : next == BakeTaxiOrderStatus.inProgress ? 'Начать поездку' : 'Завершить поездку'),
             )),
           ],
         ]),
@@ -600,17 +600,17 @@ class _DriverMapPageState extends State<DriverMapPage> {
     );
   }
 
-  Future<void> _advanceOrder(JibekOrderRequest order, JibekOrderStatus status) async {
-    final repository = DevJibekApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
+  Future<void> _advanceOrder(BakeTaxiOrderRequest order, BakeTaxiOrderStatus status) async {
+    final repository = DevBakeTaxiApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
     try {
       final updated = await repository.updateOrderStatus(orderId: order.id, status: status);
       if (!mounted) return;
       setState(() {
-        _activeOrder = updated.status == JibekOrderStatus.completed ? null : updated;
+        _activeOrder = updated.status == BakeTaxiOrderStatus.completed ? null : updated;
       });
-      _notice(updated.status == JibekOrderStatus.completed ? 'Заказ завершён' : _statusLabel(updated.status));
-      if (_online && updated.status == JibekOrderStatus.completed) _refreshOrders();
-    } on JibekApiException catch (e) {
+      _notice(updated.status == BakeTaxiOrderStatus.completed ? 'Заказ завершён' : _statusLabel(updated.status));
+      if (_online && updated.status == BakeTaxiOrderStatus.completed) _refreshOrders();
+    } on BakeTaxiApiException catch (e) {
       _notice('Не удалось обновить статус: ' + e.message);
     } catch (_) {
       _notice('Нет связи с сервером');

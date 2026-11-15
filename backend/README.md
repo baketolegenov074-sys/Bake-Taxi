@@ -1,4 +1,4 @@
-# JIBEK ZHOLY API — development scaffold
+# BAKE TAXI API — development scaffold
 
 This is an initial API implementation for local development and integration
 testing. It is **not ready for public deployment**.
@@ -24,7 +24,7 @@ Also required before production: PostgreSQL, migrations, rate limits, audit
 logs, secrets management, HTTPS, privacy/retention policy and monitoring.
 
 The SQLite database is created automatically at `backend/jibek.sqlite3`;
-override with `JIBEK_DB_PATH`.
+override with `BAKE_TAXI_DB_PATH` (legacy `JIBEK_DB_PATH` is still accepted).
 
 ## Current endpoints
 

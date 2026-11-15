@@ -81,7 +81,7 @@ service-specific required fields, service area and permitted status changes.
 ## Status
 
 The shared Dart models and repository interface are implemented in
-`packages/jibek_shared`. No production API, authentication provider, database,
+`packages/bake_taxi_shared`. No production API, authentication provider, database,
 payment integration, dispatch engine or live driver tracking is deployed yet.
 A hosting/authentication choice and server credentials are still required
 before live order exchange can be enabled.

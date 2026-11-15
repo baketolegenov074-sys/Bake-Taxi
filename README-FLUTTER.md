@@ -6,7 +6,7 @@ Flutter migration is developed on `flutter-migration`. The original Kotlin modul
 
 - `apps/passenger`: OpenStreetMap map, address lookup, route preview and vehicle class selection.
 - `apps/driver`: map, user-initiated location lookup, local availability switch and service preferences.
-- `packages/jibek_shared`: shared theme and reusable UI.
+- `packages/bake_taxi_shared`: shared theme and reusable UI.
 
 ## Current status
 

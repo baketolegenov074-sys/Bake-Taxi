@@ -1,9 +1,9 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android") }
 android {
-    namespace = "kz.jibekzholy.passenger"
+    namespace = "kz.baketaxi.client"
     compileSdk = 35
     defaultConfig {
-        applicationId = "kz.jibekzholy.passenger"
+        applicationId = "kz.baketaxi.client"
         minSdk = 23
         targetSdk = 35
         versionCode = 1

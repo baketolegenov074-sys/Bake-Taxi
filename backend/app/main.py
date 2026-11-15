@@ -1,4 +1,4 @@
-"""Development API for JIBEK ZHOLY. Not production-hardened yet."""
+"""Development API for BAKE TAXI. Not production-hardened yet."""
 from __future__ import annotations
 
 import json
@@ -15,7 +15,7 @@ from fastapi import FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DB_PATH = Path(os.getenv("JIBEK_DB_PATH", BASE_DIR / "jibek.sqlite3"))
+DB_PATH = Path(os.getenv("BAKE_TAXI_DB_PATH", os.getenv("JIBEK_DB_PATH", BASE_DIR / "jibek.sqlite3")))
 _LOCK = threading.RLock()
 
 Service = Literal["cityTaxi", "intercity", "parcel", "freight", "towTruck", "mobileTire"]
@@ -107,7 +107,7 @@ class DriverPresenceUpdate(BaseModel):
             raise ValueError("Выберите хотя бы одну услугу")
         return list(dict.fromkeys(value))
 
-app = FastAPI(title="JIBEK ZHOLY API", version="0.1.0")
+app = FastAPI(title="BAKE TAXI API", version="0.1.0")
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 @contextmanager
@@ -174,7 +174,7 @@ def row_to_order(row: sqlite3.Row) -> dict:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "jibek-zhholy-api"}
+    return {"status": "ok", "service": "bake-taxi-api"}
 
 @app.post("/v1/orders", response_model=OrderOut, status_code=201)
 def create_order(body: OrderCreate, x_dev_user_id: str | None = Header(default=None)):

@@ -6,21 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:jibek_shared/jibek_shared.dart';
+import 'package:bake_taxi_shared/bake_taxi_shared.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'passenger_home_page.dart';
 
-void main() => runApp(const JibekPassengerApp());
+void main() => runApp(const BakeTaxiPassengerApp());
 
-class JibekPassengerApp extends StatelessWidget {
-  const JibekPassengerApp({super.key});
+class BakeTaxiPassengerApp extends StatelessWidget {
+  const BakeTaxiPassengerApp({super.key});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'Bake Taxi',
         debugShowCheckedModeBanner: false,
-        theme: JibekTheme.light(),
+        theme: BakeTaxiTheme.light(),
         home: const PassengerHomePage(),
       );
 }
@@ -32,9 +32,9 @@ class PlaceResult {
 }
 
 class PassengerMapPage extends StatefulWidget {
-  const PassengerMapPage({super.key, this.initialService = JibekServiceType.cityTaxi, this.initialDestination, this.initialNote});
+  const PassengerMapPage({super.key, this.initialService = BakeTaxiServiceType.cityTaxi, this.initialDestination, this.initialNote});
 
-  final JibekServiceType initialService;
+  final BakeTaxiServiceType initialService;
   final String? initialDestination;
   final String? initialNote;
 
@@ -59,7 +59,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   LatLng? _toPoint;
   List<LatLng> _route = [];
   String _class = 'Эконом';
-  late JibekServiceType _service;
+  late BakeTaxiServiceType _service;
   String? _distanceLabel;
   String? _durationLabel;
   bool _locating = false;
@@ -67,9 +67,9 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   bool _sendingOrder = false;
   bool _refreshingOrder = false;
   bool _cancellingOrder = false;
-  JibekOrderRequest? _createdOrder;
-  static const _apiUrl = String.fromEnvironment('JIBEK_API_URL');
-  static const _devUserId = String.fromEnvironment('JIBEK_DEV_USER_ID');
+  BakeTaxiOrderRequest? _createdOrder;
+  static const _apiUrl = String.fromEnvironment('BAKE_TAXI_API_URL', defaultValue: String.fromEnvironment('JIBEK_API_URL'));
+  static const _devUserId = String.fromEnvironment('BAKE_TAXI_DEV_USER_ID', defaultValue: String.fromEnvironment('JIBEK_DEV_USER_ID'));
 
   @override
   void initState() {
@@ -177,7 +177,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       'accept-language': 'ru',
     });
     final response = await http.get(uri, headers: {
-      'User-Agent': 'JibekZholyPassenger/1.0 (mobile app)',
+      'User-Agent': 'BakeTaxiPassenger/1.0 (mobile app)',
       'Accept': 'application/json',
     });
     if (response.statusCode != 200) {
@@ -276,7 +276,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         '$coordinatesQuery?overview=full&geometries=geojson',
       );
       final response = await http.get(uri, headers: {
-        'User-Agent': 'JibekZholyPassenger/1.0',
+        'User-Agent': 'BakeTaxiPassenger/1.0',
       });
       if (response.statusCode != 200) throw Exception('Ошибка построения маршрута');
       final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -366,7 +366,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'kz.jibekzholy.passenger',
+                userAgentPackageName: 'kz.baketaxi.client',
               ),
               if (_route.isNotEmpty)
                 PolylineLayer(polylines: [
@@ -498,7 +498,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                               const Spacer(),
                               if (_createdOrder!.isBoosted) const Chip(avatar: Icon(Icons.local_fire_department, color: Colors.deepOrange, size: 18), label: Text('Повышена')),
                             ]),
-                            if (_createdOrder!.status == JibekOrderStatus.searching) ...[
+                            if (_createdOrder!.status == BakeTaxiOrderStatus.searching) ...[
                               const SizedBox(height: 8),
                               SizedBox(width: double.infinity, child: FilledButton.icon(
                                 onPressed: _refreshingOrder || _cancellingOrder ? null : _boostOrder,
@@ -550,14 +550,14 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                   const Text('Услуга', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
                   const SizedBox(height: 8),
                   SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
-                    _serviceTab('Такси', JibekServiceType.cityTaxi),
-                    _serviceTab('Межгород', JibekServiceType.intercity),
-                    _serviceTab('Посылка', JibekServiceType.parcel),
-                    _serviceTab('Грузовой', JibekServiceType.freight),
-                    _serviceTab('Эвакуатор', JibekServiceType.towTruck),
-                    _serviceTab('Шиномонтаж', JibekServiceType.mobileTire),
+                    _serviceTab('Такси', BakeTaxiServiceType.cityTaxi),
+                    _serviceTab('Межгород', BakeTaxiServiceType.intercity),
+                    _serviceTab('Посылка', BakeTaxiServiceType.parcel),
+                    _serviceTab('Грузовой', BakeTaxiServiceType.freight),
+                    _serviceTab('Эвакуатор', BakeTaxiServiceType.towTruck),
+                    _serviceTab('Шиномонтаж', BakeTaxiServiceType.mobileTire),
                   ])),
-                  if (_service == JibekServiceType.cityTaxi) ...[
+                  if (_service == BakeTaxiServiceType.cityTaxi) ...[
                     const SizedBox(height: 12),
                     const Text('Выберите тариф', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Color(0xFF172B3A))),
                     const SizedBox(height: 8),
@@ -567,12 +567,12 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       _tariffCard('Бизнес', Icons.directions_car_filled_rounded, 'от 7 мин', 'Цена после маршрута'),
                     ])),
                   ],
-                  if (_service == JibekServiceType.freight || _service == JibekServiceType.parcel ||
-                      _service == JibekServiceType.towTruck || _service == JibekServiceType.mobileTire) ...[
+                  if (_service == BakeTaxiServiceType.freight || _service == BakeTaxiServiceType.parcel ||
+                      _service == BakeTaxiServiceType.towTruck || _service == BakeTaxiServiceType.mobileTire) ...[
                     const SizedBox(height: 10),
-                    Text(_service == JibekServiceType.parcel ? 'Доставка посылки' :
-                      _service == JibekServiceType.freight ? 'Грузовой автомобиль' :
-                      _service == JibekServiceType.towTruck ? 'Эвакуатор' : 'Выездной шиномонтаж',
+                    Text(_service == BakeTaxiServiceType.parcel ? 'Доставка посылки' :
+                      _service == BakeTaxiServiceType.freight ? 'Грузовой автомобиль' :
+                      _service == BakeTaxiServiceType.towTruck ? 'Эвакуатор' : 'Выездной шиномонтаж',
                       style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF172B3A))),
                   ],
                   const SizedBox(height: 12),
@@ -581,13 +581,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     maxLines: 2,
                     maxLength: 500,
                     decoration: InputDecoration(
-                      labelText: _service == JibekServiceType.parcel
+                      labelText: _service == BakeTaxiServiceType.parcel
                           ? 'Что нужно доставить?'
-                           : _service == JibekServiceType.freight
+                           : _service == BakeTaxiServiceType.freight
                               ? 'Опишите груз, габариты и адрес доставки'
-                              : _service == JibekServiceType.towTruck
+                              : _service == BakeTaxiServiceType.towTruck
                               ? 'Опишите автомобиль и поломку'
-                              : _service == JibekServiceType.mobileTire
+                              : _service == BakeTaxiServiceType.mobileTire
                                   ? 'Укажите размер колёс и проблему'
                                   : 'Комментарий водителю',
                       border: const OutlineInputBorder(),
@@ -629,7 +629,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                       icon: _searching
                           ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : const Icon(Icons.local_taxi_rounded),
-                      label: Text((_searching || _sendingOrder) ? 'Подождите...' : (_route.isNotEmpty ? (_service == JibekServiceType.parcel ? 'Заказать доставку' : _service == JibekServiceType.freight ? 'Заказать грузовую машину' : _service == JibekServiceType.towTruck ? 'Вызвать эвакуатор' : _service == JibekServiceType.mobileTire ? 'Вызвать шиномонтаж' : 'Заказать поездку') : 'Продолжить'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      label: Text((_searching || _sendingOrder) ? 'Подождите...' : (_route.isNotEmpty ? (_service == BakeTaxiServiceType.parcel ? 'Заказать доставку' : _service == BakeTaxiServiceType.freight ? 'Заказать грузовую машину' : _service == BakeTaxiServiceType.towTruck ? 'Вызвать эвакуатор' : _service == BakeTaxiServiceType.mobileTire ? 'Вызвать шиномонтаж' : 'Заказать поездку') : 'Продолжить'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFC928), foregroundColor: const Color(0xFF172B3A), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                     ),
                   ),
@@ -644,7 +644,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
-  Widget _serviceTab(String label, JibekServiceType service) => Padding(
+  Widget _serviceTab(String label, BakeTaxiServiceType service) => Padding(
     padding: const EdgeInsets.only(right: 8),
     child: ChoiceChip(
       label: Text(label), selected: _service == service,
@@ -693,16 +693,16 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   }
 
   Future<void> _submitOrder() async {
-    final requiresDetails = _service == JibekServiceType.parcel ||
-        _service == JibekServiceType.freight ||
-        _service == JibekServiceType.towTruck ||
-        _service == JibekServiceType.mobileTire;
+    final requiresDetails = _service == BakeTaxiServiceType.parcel ||
+        _service == BakeTaxiServiceType.freight ||
+        _service == BakeTaxiServiceType.towTruck ||
+        _service == BakeTaxiServiceType.mobileTire;
     if (requiresDetails && _noteController.text.trim().isEmpty) {
-      _message(_service == JibekServiceType.parcel
+      _message(_service == BakeTaxiServiceType.parcel
           ? 'Опишите посылку и что нужно доставить'
-           : _service == JibekServiceType.freight
+           : _service == BakeTaxiServiceType.freight
               ? 'Опишите груз, габариты и адрес доставки'
-              : _service == JibekServiceType.towTruck
+              : _service == BakeTaxiServiceType.towTruck
               ? 'Укажите автомобиль и характер поломки'
               : 'Укажите размер колёс и проблему');
       return;
@@ -718,7 +718,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       _message('Отправка пока закрыта: сервер и тестовый доступ не настроены'); return;
     }
     setState(() => _sendingOrder = true);
-    final repository = DevJibekApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
+    final repository = DevBakeTaxiApiRepository(baseUrl: _apiUrl, devUserIdProvider: () async => _devUserId);
     final orderNote = [
       _noteController.text.trim(),
       if (_childSeat) 'Детское кресло',
@@ -726,15 +726,15 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       'Оплата: $_paymentMethod',
     ].where((item) => item.isNotEmpty).join('; ');
     try {
-      final draft = JibekOrderRequest(
+      final draft = BakeTaxiOrderRequest(
         id: 'local-draft', service: _service,
-        pickup: JibekGeoPoint(latitude: _fromPoint!.latitude, longitude: _fromPoint!.longitude, address: _fromController.text),
-        destination: JibekGeoPoint(latitude: _toPoint!.latitude, longitude: _toPoint!.longitude, address: _toController.text),
+        pickup: BakeTaxiGeoPoint(latitude: _fromPoint!.latitude, longitude: _fromPoint!.longitude, address: _fromController.text),
+        destination: BakeTaxiGeoPoint(latitude: _toPoint!.latitude, longitude: _toPoint!.longitude, address: _toController.text),
         stops: _addStop && _stopPoint != null
-            ? [JibekGeoPoint(latitude: _stopPoint!.latitude, longitude: _stopPoint!.longitude, address: _stopController.text)]
+            ? [BakeTaxiGeoPoint(latitude: _stopPoint!.latitude, longitude: _stopPoint!.longitude, address: _stopController.text)]
             : const [],
         createdAt: DateTime.now(),
-        vehicleClass: _service == JibekServiceType.cityTaxi ? _class : null,
+        vehicleClass: _service == BakeTaxiServiceType.cityTaxi ? _class : null,
         note: orderNote.isEmpty ? null : orderNote,
         priceKzt: 250,
       );
@@ -747,7 +747,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       await preferences.setString('jibek_passenger_active_order_id', created.id);
       await _saveOrderToHistory(created);
       _message('Заявка создана. Номер: ' + created.id);
-    } on JibekApiException catch (e) {
+    } on BakeTaxiApiException catch (e) {
       _message('Не удалось отправить заявку: ' + e.message);
     } catch (_) { _message('Нет связи с сервером. Повторите позже.'); }
     finally { repository.close(); if (mounted) setState(() { _sendingOrder = false; _searching = false; }); }
@@ -764,7 +764,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         if (!mounted) return;
         setState(() => _createdOrder = order);
         await _saveOrderState(order);
-      } on JibekApiException catch (error) {
+      } on BakeTaxiApiException catch (error) {
         if (error.statusCode == 404 || error.statusCode == 403) {
           await preferences.remove('jibek_passenger_active_order_id');
         } else {
@@ -778,7 +778,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     }
   }
 
-  Future<void> _saveOrderToHistory(JibekOrderRequest order) async {
+  Future<void> _saveOrderToHistory(BakeTaxiOrderRequest order) async {
     final preferences = await SharedPreferences.getInstance();
     final history = preferences.getStringList('bake_taxi_order_history') ?? <String>[];
     history.removeWhere((entry) {
@@ -795,10 +795,10 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
-  Future<void> _saveOrderState(JibekOrderRequest order) async {
+  Future<void> _saveOrderState(BakeTaxiOrderRequest order) async {
     await _saveOrderToHistory(order);
-    final isTerminal = order.status == JibekOrderStatus.completed ||
-        order.status == JibekOrderStatus.cancelled;
+    final isTerminal = order.status == BakeTaxiOrderStatus.completed ||
+        order.status == BakeTaxiOrderStatus.cancelled;
     if (!isTerminal) return;
     final preferences = await SharedPreferences.getInstance();
     if (preferences.getString('jibek_passenger_active_order_id') == order.id) {
@@ -806,29 +806,29 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     }
   }
 
-  String _statusLabel(JibekOrderStatus status) => switch (status) {
-        JibekOrderStatus.searching => 'Ищем водителя',
-        JibekOrderStatus.accepted => 'Водитель принял заказ',
-        JibekOrderStatus.driverArriving => 'Водитель едет к вам',
-        JibekOrderStatus.inProgress => 'Поездка началась',
-        JibekOrderStatus.completed => 'Поездка завершена',
-        JibekOrderStatus.cancelled => 'Заказ отменён',
-        JibekOrderStatus.draft => 'Черновик',
+  String _statusLabel(BakeTaxiOrderStatus status) => switch (status) {
+        BakeTaxiOrderStatus.searching => 'Ищем водителя',
+        BakeTaxiOrderStatus.accepted => 'Водитель принял заказ',
+        BakeTaxiOrderStatus.driverArriving => 'Водитель едет к вам',
+        BakeTaxiOrderStatus.inProgress => 'Поездка началась',
+        BakeTaxiOrderStatus.completed => 'Поездка завершена',
+        BakeTaxiOrderStatus.cancelled => 'Заказ отменён',
+        BakeTaxiOrderStatus.draft => 'Черновик',
       };
 
-  bool _canCancelOrder(JibekOrderStatus status) =>
-      status == JibekOrderStatus.searching ||
-      status == JibekOrderStatus.accepted ||
-      status == JibekOrderStatus.driverArriving;
+  bool _canCancelOrder(BakeTaxiOrderStatus status) =>
+      status == BakeTaxiOrderStatus.searching ||
+      status == BakeTaxiOrderStatus.accepted ||
+      status == BakeTaxiOrderStatus.driverArriving;
 
-  DevJibekApiRepository _orderRepository() => DevJibekApiRepository(
+  DevBakeTaxiApiRepository _orderRepository() => DevBakeTaxiApiRepository(
         baseUrl: _apiUrl,
         devUserIdProvider: () async => _devUserId,
       );
 
   Future<void> _boostOrder() async {
     final order = _createdOrder;
-    if (order == null || order.status != JibekOrderStatus.searching || _apiUrl.isEmpty || _devUserId.isEmpty) return;
+    if (order == null || order.status != BakeTaxiOrderStatus.searching || _apiUrl.isEmpty || _devUserId.isEmpty) return;
     setState(() => _refreshingOrder = true);
     final repository = _orderRepository();
     try {
@@ -837,7 +837,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       setState(() => _createdOrder = updated);
       await _saveOrderState(updated);
       _message('Цена увеличена до ${updated.priceKzt} ₸');
-    } on JibekApiException catch (e) {
+    } on BakeTaxiApiException catch (e) {
       _message('Не удалось повысить цену: ${e.message}');
     } catch (_) { _message('Нет связи с сервером. Цена не изменена.'); }
     finally { repository.close(); if (mounted) setState(() => _refreshingOrder = false); }
@@ -854,7 +854,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       setState(() => _createdOrder = updated);
       await _saveOrderState(updated);
       _message('Статус обновлён: ${_statusLabel(updated.status)}');
-    } on JibekApiException catch (e) {
+    } on BakeTaxiApiException catch (e) {
       _message('Не удалось обновить статус: ${e.message}');
     } catch (_) {
       _message('Нет связи с сервером. Повторите позже.');
@@ -890,13 +890,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     try {
       final updated = await repository.updateOrderStatus(
         orderId: order.id,
-        status: JibekOrderStatus.cancelled,
+        status: BakeTaxiOrderStatus.cancelled,
       );
       if (!mounted) return;
       setState(() => _createdOrder = updated);
       await _saveOrderState(updated);
       _message('Заявка отменена');
-    } on JibekApiException catch (e) {
+    } on BakeTaxiApiException catch (e) {
       _message('Не удалось отменить заявку: ${e.message}');
     } catch (_) {
       _message('Нет связи с сервером. Повторите позже.');

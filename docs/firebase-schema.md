@@ -1,4 +1,4 @@
-# JIBEK ZHOLY — Firebase data structure (Step 1)
+# BAKE TAXI — Firebase data structure (Step 1)
 
 This is the agreed database blueprint. It does not create a Firebase project,
 upload credentials, or enable production access by itself.

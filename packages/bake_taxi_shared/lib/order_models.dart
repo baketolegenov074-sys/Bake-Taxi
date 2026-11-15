@@ -1,7 +1,7 @@
 /// Shared domain contract used by the passenger app, driver app and API.
-enum JibekServiceType { cityTaxi, intercity, parcel, freight, towTruck, mobileTire }
+enum BakeTaxiServiceType { cityTaxi, intercity, parcel, freight, towTruck, mobileTire }
 
-enum JibekOrderStatus {
+enum BakeTaxiOrderStatus {
   draft,
   searching,
   accepted,
@@ -11,8 +11,8 @@ enum JibekOrderStatus {
   cancelled,
 }
 
-class JibekGeoPoint {
-  const JibekGeoPoint({
+class BakeTaxiGeoPoint {
+  const BakeTaxiGeoPoint({
     required this.latitude,
     required this.longitude,
     this.address,
@@ -34,16 +34,16 @@ class JibekGeoPoint {
         if (address != null) 'address': address,
       };
 
-  factory JibekGeoPoint.fromJson(Map<String, Object?> json) =>
-      JibekGeoPoint(
+  factory BakeTaxiGeoPoint.fromJson(Map<String, Object?> json) =>
+      BakeTaxiGeoPoint(
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         address: json['address'] as String?,
       );
 }
 
-class JibekOrderRequest {
-  const JibekOrderRequest({
+class BakeTaxiOrderRequest {
+  const BakeTaxiOrderRequest({
     required this.id,
     required this.service,
     required this.pickup,
@@ -53,21 +53,21 @@ class JibekOrderRequest {
     this.note,
     this.stops = const [],
     this.passengerId,
-    this.status = JibekOrderStatus.draft,
+    this.status = BakeTaxiOrderStatus.draft,
     this.priceKzt = 250,
     this.boostCount = 0,
   });
 
   final String id;
-  final JibekServiceType service;
-  final JibekGeoPoint pickup;
-  final JibekGeoPoint destination;
+  final BakeTaxiServiceType service;
+  final BakeTaxiGeoPoint pickup;
+  final BakeTaxiGeoPoint destination;
   final DateTime createdAt;
   final String? vehicleClass;
   final String? note;
-  final List<JibekGeoPoint> stops;
+  final List<BakeTaxiGeoPoint> stops;
   final String? passengerId;
-  final JibekOrderStatus status;
+  final BakeTaxiOrderStatus status;
   final int priceKzt;
   final int boostCount;
   bool get isBoosted => boostCount > 0;
@@ -89,20 +89,20 @@ class JibekOrderRequest {
         return 'Остановка должна отличаться от начала и конца маршрута';
       }
     }
-    if (service == JibekServiceType.cityTaxi &&
+    if (service == BakeTaxiServiceType.cityTaxi &&
         (vehicleClass == null || vehicleClass!.trim().isEmpty)) {
       return 'Для городского такси выберите класс автомобиля';
     }
-    if ((service == JibekServiceType.parcel ||
-            service == JibekServiceType.freight ||
-            service == JibekServiceType.towTruck ||
-            service == JibekServiceType.mobileTire) &&
+    if ((service == BakeTaxiServiceType.parcel ||
+            service == BakeTaxiServiceType.freight ||
+            service == BakeTaxiServiceType.towTruck ||
+            service == BakeTaxiServiceType.mobileTire) &&
         (note == null || note!.trim().isEmpty)) {
-      return service == JibekServiceType.parcel
+      return service == BakeTaxiServiceType.parcel
           ? 'Опишите посылку и что нужно доставить'
-          : service == JibekServiceType.freight
+          : service == BakeTaxiServiceType.freight
               ? 'Опишите груз, габариты и адрес доставки'
-              : service == JibekServiceType.towTruck
+              : service == BakeTaxiServiceType.towTruck
               ? 'Укажите автомобиль и характер поломки'
               : 'Укажите размер колёс и проблему';
     }
@@ -124,25 +124,25 @@ class JibekOrderRequest {
         'boostCount': boostCount,
       };
 
-  factory JibekOrderRequest.fromJson(Map<String, Object?> json) =>
-      JibekOrderRequest(
+  factory BakeTaxiOrderRequest.fromJson(Map<String, Object?> json) =>
+      BakeTaxiOrderRequest(
         id: json['id'] as String,
-        service: JibekServiceType.values.byName(json['service'] as String),
-        pickup: JibekGeoPoint.fromJson(
+        service: BakeTaxiServiceType.values.byName(json['service'] as String),
+        pickup: BakeTaxiGeoPoint.fromJson(
           Map<String, Object?>.from(json['pickup'] as Map),
         ),
-        destination: JibekGeoPoint.fromJson(
+        destination: BakeTaxiGeoPoint.fromJson(
           Map<String, Object?>.from(json['destination'] as Map),
         ),
         createdAt: DateTime.parse(json['createdAt'] as String),
         vehicleClass: json['vehicleClass'] as String?,
         note: json['note'] as String?,
         stops: (json['stops'] as List<dynamic>? ?? const [])
-            .map((item) => JibekGeoPoint.fromJson(Map<String, Object?>.from(item as Map)))
+            .map((item) => BakeTaxiGeoPoint.fromJson(Map<String, Object?>.from(item as Map)))
             .toList(growable: false),
         passengerId: json['passengerId'] as String?,
-        status: JibekOrderStatus.values.byName(
-          json['status'] as String? ?? JibekOrderStatus.draft.name,
+        status: BakeTaxiOrderStatus.values.byName(
+          json['status'] as String? ?? BakeTaxiOrderStatus.draft.name,
         ),
         priceKzt: (json['priceKzt'] as num?)?.toInt() ?? 250,
         boostCount: (json['boostCount'] as num?)?.toInt() ?? 0,

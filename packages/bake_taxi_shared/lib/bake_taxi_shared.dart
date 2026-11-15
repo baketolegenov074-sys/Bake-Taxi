@@ -1,6 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
-library jibek_shared;
+library bake_taxi_shared;
 
 import 'package:flutter/material.dart';
 
@@ -9,7 +9,7 @@ export 'order_repository.dart';
 
 
 
-class JibekTheme {
+class BakeTaxiTheme {
   static ThemeData light() {
     const navy = Color(0xFF10243A);
     const gold = Color(0xFFD6A84F);
@@ -48,8 +48,8 @@ class JibekTheme {
   }
 }
 
-class JibekHomeShell extends StatelessWidget {
-  const JibekHomeShell({
+class BakeTaxiHomeShell extends StatelessWidget {
+  const BakeTaxiHomeShell({
     required this.title,
     required this.subtitle,
     required this.roleLabel,
@@ -103,8 +103,8 @@ class JibekHomeShell extends StatelessWidget {
   }
 }
 
-class JibekServiceTile extends StatelessWidget {
-  const JibekServiceTile({
+class BakeTaxiServiceTile extends StatelessWidget {
+  const BakeTaxiServiceTile({
     required this.icon,
     required this.title,
     required this.subtitle,

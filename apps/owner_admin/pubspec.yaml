@@ -1,4 +1,4 @@
-name: jibek_owner_admin
+name: bake_taxi_owner_admin
 description: Admin app for Bake Taxi.
 publish_to: 'none'
 version: 1.0.0+1
@@ -9,8 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  jibek_shared:
-    path: ../../packages/jibek_shared
+  bake_taxi_shared:
+    path: ../../packages/bake_taxi_shared
   permission_handler: ^12.0.0
 
 dev_dependencies:

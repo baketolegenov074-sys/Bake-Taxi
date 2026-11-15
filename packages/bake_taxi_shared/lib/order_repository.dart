@@ -5,29 +5,29 @@ import 'package:http/http.dart' as http;
 import 'order_models.dart';
 
 /// API boundary. Implementations must use verified user identity.
-abstract interface class JibekOrderRepository {
-  Future<JibekOrderRequest> createOrder(JibekOrderRequest request);
+abstract interface class BakeTaxiOrderRepository {
+  Future<BakeTaxiOrderRequest> createOrder(BakeTaxiOrderRequest request);
 
-  Future<JibekOrderRequest> getOrder({required String orderId});
+  Future<BakeTaxiOrderRequest> getOrder({required String orderId});
 
-  Future<JibekOrderRequest?> getActiveDriverOrder();
+  Future<BakeTaxiOrderRequest?> getActiveDriverOrder();
 
-  Future<List<JibekOrderRequest>> getAvailableOrders({
-    required Set<JibekServiceType> services,
+  Future<List<BakeTaxiOrderRequest>> getAvailableOrders({
+    required Set<BakeTaxiServiceType> services,
   });
 
   Future<void> updateDriverPresence({
     required bool isOnline,
-    required Set<JibekServiceType> services,
+    required Set<BakeTaxiServiceType> services,
   });
 
-  Future<JibekOrderRequest> acceptOrder({required String orderId});
+  Future<BakeTaxiOrderRequest> acceptOrder({required String orderId});
 
-  Future<JibekOrderRequest> boostOrder({required String orderId, int amountKzt = 250});
+  Future<BakeTaxiOrderRequest> boostOrder({required String orderId, int amountKzt = 250});
 
-  Future<JibekOrderRequest> updateOrderStatus({
+  Future<BakeTaxiOrderRequest> updateOrderStatus({
     required String orderId,
-    required JibekOrderStatus status,
+    required BakeTaxiOrderStatus status,
   });
 }
 
@@ -35,8 +35,8 @@ abstract interface class JibekOrderRepository {
 ///
 /// The server currently trusts X-Dev-User-Id. Never ship this adapter in a
 /// public release. Replace it with a verified JWT/OIDC implementation first.
-class DevJibekApiRepository implements JibekOrderRepository {
-  DevJibekApiRepository({
+class DevBakeTaxiApiRepository implements BakeTaxiOrderRepository {
+  DevBakeTaxiApiRepository({
     required String baseUrl,
     required Future<String> Function() devUserIdProvider,
     http.Client? client,
@@ -55,7 +55,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
   Future<Map<String, String>> _headers() async {
     final userId = (await _devUserIdProvider()).trim();
     if (userId.isEmpty) {
-      throw const JibekApiException('Не задан тестовый пользователь');
+      throw const BakeTaxiApiException('Не задан тестовый пользователь');
     }
     return {..._baseHeaders, 'X-Dev-User-Id': userId};
   }
@@ -71,40 +71,40 @@ class DevJibekApiRepository implements JibekOrderRepository {
         response.body.isEmpty ? null : jsonDecode(response.body);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final detail = decoded is Map ? decoded['detail'] : null;
-      throw JibekApiException(
+      throw BakeTaxiApiException(
         detail?.toString() ?? 'Ошибка сервера (${response.statusCode})',
         statusCode: response.statusCode,
       );
     }
     if (decoded is! Map) {
-      throw const JibekApiException('Сервер вернул неверный формат');
+      throw const BakeTaxiApiException('Сервер вернул неверный формат');
     }
     return Map<String, Object?>.from(decoded);
   }
 
-  JibekOrderRequest _orderFromApi(Map<String, Object?> json) =>
-      JibekOrderRequest(
+  BakeTaxiOrderRequest _orderFromApi(Map<String, Object?> json) =>
+      BakeTaxiOrderRequest(
         id: json['id'] as String,
-        service: JibekServiceType.values.byName(json['service'] as String),
-        pickup: JibekGeoPoint.fromJson(
+        service: BakeTaxiServiceType.values.byName(json['service'] as String),
+        pickup: BakeTaxiGeoPoint.fromJson(
           Map<String, Object?>.from(json['pickup'] as Map),
         ),
-        destination: JibekGeoPoint.fromJson(
+        destination: BakeTaxiGeoPoint.fromJson(
           Map<String, Object?>.from(json['destination'] as Map),
         ),
         createdAt: DateTime.parse(json['createdAt'] as String),
         vehicleClass: json['vehicleClass'] as String?,
         note: json['note'] as String?,
         stops: (json['stops'] as List<dynamic>? ?? const [])
-            .map((item) => JibekGeoPoint.fromJson(Map<String, Object?>.from(item as Map)))
+            .map((item) => BakeTaxiGeoPoint.fromJson(Map<String, Object?>.from(item as Map)))
             .toList(growable: false),
         passengerId: json['passengerId'] as String?,
-        status: JibekOrderStatus.values.byName(json['status'] as String),
+        status: BakeTaxiOrderStatus.values.byName(json['status'] as String),
         priceKzt: (json['priceKzt'] as num?)?.toInt() ?? 250,
         boostCount: (json['boostCount'] as num?)?.toInt() ?? 0,
       );
 
-  Map<String, Object?> _createPayload(JibekOrderRequest order) => {
+  Map<String, Object?> _createPayload(BakeTaxiOrderRequest order) => {
         'service': order.service.name,
         'pickup': order.pickup.toJson(),
         'destination': order.destination.toJson(),
@@ -116,7 +116,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
       };
 
   @override
-  Future<JibekOrderRequest> createOrder(JibekOrderRequest request) async {
+  Future<BakeTaxiOrderRequest> createOrder(BakeTaxiOrderRequest request) async {
     final json = await _send(
       (headers) => _client.post(
         _uri('/v1/orders'),
@@ -128,7 +128,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
   }
 
   @override
-  Future<JibekOrderRequest?> getActiveDriverOrder() async {
+  Future<BakeTaxiOrderRequest?> getActiveDriverOrder() async {
     final response = await _client.get(
       _uri('/v1/driver/orders/active'),
       headers: await _headers(),
@@ -137,7 +137,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
       final Object? decoded =
           response.body.isEmpty ? null : jsonDecode(response.body);
       final detail = decoded is Map ? decoded['detail'] : null;
-      throw JibekApiException(
+      throw BakeTaxiApiException(
         detail?.toString() ?? 'Ошибка сервера (${response.statusCode})',
         statusCode: response.statusCode,
       );
@@ -145,13 +145,13 @@ class DevJibekApiRepository implements JibekOrderRepository {
     if (response.body.trim() == 'null' || response.body.isEmpty) return null;
     final Object? decoded = jsonDecode(response.body);
     if (decoded is! Map) {
-      throw const JibekApiException('Сервер вернул неверный формат заказа');
+      throw const BakeTaxiApiException('Сервер вернул неверный формат заказа');
     }
     return _orderFromApi(Map<String, Object?>.from(decoded));
   }
 
   @override
-  Future<JibekOrderRequest> getOrder({required String orderId}) async {
+  Future<BakeTaxiOrderRequest> getOrder({required String orderId}) async {
     final json = await _send(
       (headers) => _client.get(
         _uri('/v1/orders/$orderId'),
@@ -162,8 +162,8 @@ class DevJibekApiRepository implements JibekOrderRepository {
   }
 
   @override
-  Future<List<JibekOrderRequest>> getAvailableOrders({
-    required Set<JibekServiceType> services,
+  Future<List<BakeTaxiOrderRequest>> getAvailableOrders({
+    required Set<BakeTaxiServiceType> services,
   }) async {
     if (services.isEmpty) return [];
     final query = <String, dynamic>{
@@ -176,13 +176,13 @@ class DevJibekApiRepository implements JibekOrderRepository {
     final Object? decoded = jsonDecode(response.body);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final detail = decoded is Map ? decoded['detail'] : null;
-      throw JibekApiException(
+      throw BakeTaxiApiException(
         detail?.toString() ?? 'Ошибка сервера (${response.statusCode})',
         statusCode: response.statusCode,
       );
     }
     if (decoded is! List) {
-      throw const JibekApiException('Сервер вернул неверный список заявок');
+      throw const BakeTaxiApiException('Сервер вернул неверный список заявок');
     }
     return decoded
         .map((item) => _orderFromApi(Map<String, Object?>.from(item as Map)))
@@ -192,7 +192,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
   @override
   Future<void> updateDriverPresence({
     required bool isOnline,
-    required Set<JibekServiceType> services,
+    required Set<BakeTaxiServiceType> services,
   }) async {
     await _send(
       (headers) => _client.put(
@@ -207,7 +207,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
   }
 
   @override
-  Future<JibekOrderRequest> acceptOrder({required String orderId}) async {
+  Future<BakeTaxiOrderRequest> acceptOrder({required String orderId}) async {
     final json = await _send(
       (headers) => _client.post(
         _uri('/v1/orders/$orderId/accept'),
@@ -218,7 +218,7 @@ class DevJibekApiRepository implements JibekOrderRepository {
   }
 
   @override
-  Future<JibekOrderRequest> boostOrder({required String orderId, int amountKzt = 250}) async {
+  Future<BakeTaxiOrderRequest> boostOrder({required String orderId, int amountKzt = 250}) async {
     final json = await _send((headers) => _client.post(
       _uri('/v1/orders/$orderId/boost'), headers: headers,
       body: jsonEncode({'amountKzt': amountKzt}),
@@ -227,9 +227,9 @@ class DevJibekApiRepository implements JibekOrderRepository {
   }
 
   @override
-  Future<JibekOrderRequest> updateOrderStatus({
+  Future<BakeTaxiOrderRequest> updateOrderStatus({
     required String orderId,
-    required JibekOrderStatus status,
+    required BakeTaxiOrderStatus status,
   }) async {
     final json = await _send(
       (headers) => _client.patch(
@@ -244,8 +244,8 @@ class DevJibekApiRepository implements JibekOrderRepository {
   void close() => _client.close();
 }
 
-class JibekApiException implements Exception {
-  const JibekApiException(this.message, {this.statusCode});
+class BakeTaxiApiException implements Exception {
+  const BakeTaxiApiException(this.message, {this.statusCode});
 
   final String message;
   final int? statusCode;

@@ -27,7 +27,7 @@ jobs:
         run: gradle --no-daemon assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: JIBEK-ZHOLY-APKs
+          name: Bake-Taxi-APKs
           path: |
             passenger/build/outputs/apk/debug/passenger-debug.apk
             driver/build/outputs/apk/debug/driver-debug.apk

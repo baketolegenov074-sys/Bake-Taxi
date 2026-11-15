@@ -1,4 +1,4 @@
-name: jibek_driver
+name: bake_taxi_driver
 description: Driver app for Bake Taxi.
 publish_to: 'none'
 version: 1.0.0+1
@@ -9,8 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  jibek_shared:
-    path: ../../packages/jibek_shared
+  bake_taxi_shared:
+    path: ../../packages/bake_taxi_shared
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
   geolocator: ^14.0.2

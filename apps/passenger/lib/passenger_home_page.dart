@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:jibek_shared/jibek_shared.dart';
+import 'package:bake_taxi_shared/bake_taxi_shared.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'permissions/startup_permissions.dart';
 import 'main.dart';
@@ -94,7 +94,7 @@ class _PassengerHomePageState extends State<PassengerHomePage> {
     );
   }
 
-  void _open(BuildContext context, JibekServiceType service) {
+  void _open(BuildContext context, BakeTaxiServiceType service) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => PassengerMapPage(initialService: service),
     ));
@@ -146,26 +146,26 @@ class _PassengerHomePageState extends State<PassengerHomePage> {
             crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.45,
             children: [
-              _ServiceCard(title: 'Такси', subtitle: 'от 4 мин', icon: Icons.local_taxi_rounded, color: const Color(0xFFEAF0F6), onTap: () => _open(context, JibekServiceType.cityTaxi)),
-              _ServiceCard(title: 'Доставка', subtitle: 'Посылка', icon: Icons.inventory_2_rounded, color: const Color(0xFFF2F4F7), onTap: () => _open(context, JibekServiceType.parcel)),
+              _ServiceCard(title: 'Такси', subtitle: 'от 4 мин', icon: Icons.local_taxi_rounded, color: const Color(0xFFEAF0F6), onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
+              _ServiceCard(title: 'Доставка', subtitle: 'Посылка', icon: Icons.inventory_2_rounded, color: const Color(0xFFF2F4F7), onTap: () => _open(context, BakeTaxiServiceType.parcel)),
               _ServiceCard(title: 'Межгород', subtitle: 'В другой город', icon: Icons.route_rounded, color: const Color(0xFFF2F4F7), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IntercityPage()))),
-              _ServiceCard(title: 'Грузовой', subtitle: 'Перевозка вещей', icon: Icons.local_shipping_rounded, color: const Color(0xFFEAF0F6), onTap: () => _open(context, JibekServiceType.freight)),
+              _ServiceCard(title: 'Грузовой', subtitle: 'Перевозка вещей', icon: Icons.local_shipping_rounded, color: const Color(0xFFEAF0F6), onTap: () => _open(context, BakeTaxiServiceType.freight)),
             ],
           ),
           const SizedBox(height: 20),
           const Text('Ещё услуги', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: _ink)),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _SmallService(icon: Icons.car_crash_rounded, title: 'Эвакуатор', onTap: () => _open(context, JibekServiceType.towTruck))),
-            Expanded(child: _SmallService(icon: Icons.tire_repair_rounded, title: 'Шиномонтаж', onTap: () => _open(context, JibekServiceType.mobileTire))),
-            Expanded(child: _SmallService(icon: Icons.airline_seat_recline_extra_rounded, title: 'Комфорт / Бизнес', onTap: () => _open(context, JibekServiceType.cityTaxi))),
+            Expanded(child: _SmallService(icon: Icons.car_crash_rounded, title: 'Эвакуатор', onTap: () => _open(context, BakeTaxiServiceType.towTruck))),
+            Expanded(child: _SmallService(icon: Icons.tire_repair_rounded, title: 'Шиномонтаж', onTap: () => _open(context, BakeTaxiServiceType.mobileTire))),
+            Expanded(child: _SmallService(icon: Icons.airline_seat_recline_extra_rounded, title: 'Комфорт / Бизнес', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi))),
           ]),
           const SizedBox(height: 22),
           Material(
             color: Colors.white, borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: () => _open(context, JibekServiceType.cityTaxi),
+              onTap: () => _open(context, BakeTaxiServiceType.cityTaxi),
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 17),
                 child: Row(children: [
@@ -180,9 +180,9 @@ class _PassengerHomePageState extends State<PassengerHomePage> {
           const SizedBox(height: 18),
           const Text('Популярное в Шымкенте', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: _ink)),
           const SizedBox(height: 6),
-          _AddressRow(icon: Icons.flight_rounded, title: 'Аэропорт Шымкент', onTap: () => _open(context, JibekServiceType.cityTaxi)),
-          _AddressRow(icon: Icons.train_rounded, title: 'Железнодорожный вокзал', onTap: () => _open(context, JibekServiceType.cityTaxi)),
-          _AddressRow(icon: Icons.shopping_bag_outlined, title: 'ТРЦ Shymkent Plaza', onTap: () => _open(context, JibekServiceType.cityTaxi)),
+          _AddressRow(icon: Icons.flight_rounded, title: 'Аэропорт Шымкент', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
+          _AddressRow(icon: Icons.train_rounded, title: 'Железнодорожный вокзал', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
+          _AddressRow(icon: Icons.shopping_bag_outlined, title: 'ТРЦ Shymkent Plaza', onTap: () => _open(context, BakeTaxiServiceType.cityTaxi)),
         ],
       ),
     ),
@@ -240,7 +240,7 @@ class PassengerProfilePage extends StatefulWidget {
 
 class _PassengerProfilePageState extends State<PassengerProfilePage> {
   static const _historyKey = 'bake_taxi_order_history';
-  List<JibekOrderRequest> _orders = [];
+  List<BakeTaxiOrderRequest> _orders = [];
   bool _loading = true;
 
   @override
@@ -250,12 +250,12 @@ class _PassengerProfilePageState extends State<PassengerProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getStringList(_historyKey) ?? const <String>[];
-      final orders = <JibekOrderRequest>[];
+      final orders = <BakeTaxiOrderRequest>[];
       for (final item in raw) {
         try {
           final decoded = jsonDecode(item);
           if (decoded is! Map) continue;
-          orders.add(JibekOrderRequest.fromJson(
+          orders.add(BakeTaxiOrderRequest.fromJson(
             Map<String, Object?>.from(decoded),
           ));
         } catch (_) {
@@ -308,17 +308,17 @@ class _PassengerProfilePageState extends State<PassengerProfilePage> {
     ]),
   );
 
-  String _serviceTitle(JibekServiceType service) => switch (service) {
-    JibekServiceType.cityTaxi => 'Такси', JibekServiceType.intercity => 'Межгород',
-    JibekServiceType.parcel => 'Доставка', JibekServiceType.freight => 'Грузовой',
-    JibekServiceType.towTruck => 'Эвакуатор', JibekServiceType.mobileTire => 'Шиномонтаж',
+  String _serviceTitle(BakeTaxiServiceType service) => switch (service) {
+    BakeTaxiServiceType.cityTaxi => 'Такси', BakeTaxiServiceType.intercity => 'Межгород',
+    BakeTaxiServiceType.parcel => 'Доставка', BakeTaxiServiceType.freight => 'Грузовой',
+    BakeTaxiServiceType.towTruck => 'Эвакуатор', BakeTaxiServiceType.mobileTire => 'Шиномонтаж',
   };
 
-  String _statusTitle(JibekOrderStatus status) => switch (status) {
-    JibekOrderStatus.draft => 'Черновик', JibekOrderStatus.searching => 'Ищем водителя',
-    JibekOrderStatus.accepted => 'Водитель найден', JibekOrderStatus.driverArriving => 'Водитель едет',
-    JibekOrderStatus.inProgress => 'В поездке', JibekOrderStatus.completed => 'Завершена',
-    JibekOrderStatus.cancelled => 'Отменена',
+  String _statusTitle(BakeTaxiOrderStatus status) => switch (status) {
+    BakeTaxiOrderStatus.draft => 'Черновик', BakeTaxiOrderStatus.searching => 'Ищем водителя',
+    BakeTaxiOrderStatus.accepted => 'Водитель найден', BakeTaxiOrderStatus.driverArriving => 'Водитель едет',
+    BakeTaxiOrderStatus.inProgress => 'В поездке', BakeTaxiOrderStatus.completed => 'Завершена',
+    BakeTaxiOrderStatus.cancelled => 'Отменена',
   };
 
   Widget _profileItem(IconData icon, String title, {VoidCallback? onTap}) => Card(
@@ -399,7 +399,7 @@ class _PassengerFavoritesPageState extends State<PassengerFavoritesPage> {
   void _selectAddress(String address) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => PassengerMapPage(
-        initialService: JibekServiceType.cityTaxi,
+        initialService: BakeTaxiServiceType.cityTaxi,
         initialDestination: address,
       ),
     ));
@@ -555,7 +555,7 @@ class _IntercityPageState extends State<IntercityPage> {
             return;
           }
           Navigator.push(context, MaterialPageRoute(builder: (_) => PassengerMapPage(
-            initialService: JibekServiceType.intercity,
+            initialService: BakeTaxiServiceType.intercity,
             initialDestination: _destination.text.trim(),
             initialNote: _tripType == 'Место в машине'
                 ? 'Межгород: с попутчиками; мест: $_seats'

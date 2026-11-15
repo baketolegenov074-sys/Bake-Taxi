@@ -1,42 +1,42 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jibek_shared/jibek_shared.dart';
+import 'package:bake_taxi_shared/bake_taxi_shared.dart';
 
 void main() {
-  group('JibekOrderRequest', () {
-    final pickup = JibekGeoPoint(
+  group('BakeTaxiOrderRequest', () {
+    final pickup = BakeTaxiGeoPoint(
       latitude: 42.3154,
       longitude: 69.5869,
       address: 'Шымкент',
     );
-    final destination = JibekGeoPoint(
+    final destination = BakeTaxiGeoPoint(
       latitude: 42.32,
       longitude: 69.60,
       address: 'Шымкент, центр',
     );
 
     test('serializes and restores an order', () {
-      final order = JibekOrderRequest(
+      final order = BakeTaxiOrderRequest(
         id: 'test-order-1',
-        service: JibekServiceType.cityTaxi,
+        service: BakeTaxiServiceType.cityTaxi,
         pickup: pickup,
         destination: destination,
         createdAt: DateTime.utc(2026, 11, 12),
         vehicleClass: 'Эконом',
       );
 
-      final restored = JibekOrderRequest.fromJson(order.toJson());
+      final restored = BakeTaxiOrderRequest.fromJson(order.toJson());
 
       expect(restored.id, order.id);
-      expect(restored.service, JibekServiceType.cityTaxi);
+      expect(restored.service, BakeTaxiServiceType.cityTaxi);
       expect(restored.pickup.latitude, pickup.latitude);
-      expect(restored.status, JibekOrderStatus.draft);
+      expect(restored.status, BakeTaxiOrderStatus.draft);
       expect(restored.validate(), isNull);
     });
 
     test('rejects identical pickup and destination', () {
-      final order = JibekOrderRequest(
+      final order = BakeTaxiOrderRequest(
         id: 'test-order-2',
-        service: JibekServiceType.intercity,
+        service: BakeTaxiServiceType.intercity,
         pickup: pickup,
         destination: pickup,
         createdAt: DateTime.utc(2026, 11, 12),
@@ -47,11 +47,11 @@ void main() {
 
     test('requires service details for parcel, tow truck and mobile tire', () {
       for (final service in [
-        JibekServiceType.parcel,
-        JibekServiceType.towTruck,
-        JibekServiceType.mobileTire,
+        BakeTaxiServiceType.parcel,
+        BakeTaxiServiceType.towTruck,
+        BakeTaxiServiceType.mobileTire,
       ]) {
-        final order = JibekOrderRequest(
+        final order = BakeTaxiOrderRequest(
           id: 'details-required',
           service: service,
           pickup: pickup,
@@ -64,11 +64,11 @@ void main() {
 
     test('accepts service details for parcel, tow truck and mobile tire', () {
       for (final service in [
-        JibekServiceType.parcel,
-        JibekServiceType.towTruck,
-        JibekServiceType.mobileTire,
+        BakeTaxiServiceType.parcel,
+        BakeTaxiServiceType.towTruck,
+        BakeTaxiServiceType.mobileTire,
       ]) {
-        final order = JibekOrderRequest(
+        final order = BakeTaxiOrderRequest(
           id: 'details-present',
           service: service,
           pickup: pickup,
@@ -81,9 +81,9 @@ void main() {
     });
 
     test('requires vehicle class for city taxi', () {
-      final order = JibekOrderRequest(
+      final order = BakeTaxiOrderRequest(
         id: 'test-order-3',
-        service: JibekServiceType.cityTaxi,
+        service: BakeTaxiServiceType.cityTaxi,
         pickup: pickup,
         destination: destination,
         createdAt: DateTime.utc(2026, 11, 12),

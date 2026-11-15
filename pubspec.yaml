@@ -10,13 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  jibek_shared:
-    path: packages/jibek_shared
-  jibek_passenger:
+  bake_taxi_shared:
+    path: packages/bake_taxi_shared
+  bake_taxi_passenger:
     path: apps/passenger
-  jibek_driver:
+  bake_taxi_driver:
     path: apps/driver
-  jibek_owner_admin:
+  bake_taxi_owner_admin:
     path: apps/owner_admin
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
