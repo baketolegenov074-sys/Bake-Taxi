@@ -95,6 +95,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   void initState() {
     super.initState();
     _service = widget.initialService;
+    _fromController.text = 'ул. Тауке хана, 52';
+    _toController.text = 'ТРЦ «Mega Shymkent»';
     _fromFocusNode.addListener(_onAddressFocusChanged);
     _toFocusNode.addListener(_onAddressFocusChanged);
     final initialNote = widget.initialNote?.trim();
@@ -109,7 +111,8 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       });
     }
     _restoreSavedOrder();
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted && _fromController.text.trim().isEmpty) _findMe(); });
+    // Адреса из утверждённого макета остаются начальными значениями.
+    // Геолокация запускается отдельной кнопкой на карте.
   }
 
   void _onAddressFocusChanged() {
@@ -411,7 +414,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     }
   }
 
-  Widget _offerCard(int index, String title, String subtitle, IconData icon) {
+  Widget _offerCard(int index, String title, String subtitle, IconData icon, {double height = 142}) {
     final selected = _service == JibekServiceType.cityTaxi && _class == title;
     const prices = ['1 200 ₸', '1 000 ₸', '1 800 ₸', '2 500 ₸'];
     const assets = ['comfort.png', 'econom.png', 'business.png', 'minivan.png'];
@@ -419,7 +422,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
       child: GestureDetector(
         onTap: () => _selectOffer(index),
         child: Container(
-          height: 142,
+          height: height,
           margin: EdgeInsets.only(right: index == 3 ? 0 : 6),
           padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
           decoration: BoxDecoration(
@@ -573,7 +576,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     );
   }
 
-  Widget _quickTile(BuildContext context, String title, String subtitle, IconData icon, Color tint, VoidCallback onTap) =>
+  Widget _quickTile(BuildContext context, String title, String subtitle, IconData icon, Color tint, VoidCallback onTap, {double height = 86}) =>
       Material(
         color: tint,
         borderRadius: BorderRadius.circular(13),
@@ -581,7 +584,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(13),
           child: SizedBox(
-            height: 86,
+            height: height,
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(icon, size: 29, color: const Color(0xFF172B3A)),
               const SizedBox(height: 6),
@@ -605,17 +608,21 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
     ],
   );
 
-  Widget _metricTile(IconData icon, String value, String label) => Container(
-    constraints: const BoxConstraints(minHeight: 78),
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 10),
+  Widget _metricTile(IconData icon, String value, String label,
+      {double height = 78, bool showInfo = false}) => Container(
+    height: height,
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
     decoration: BoxDecoration(color: const Color(0xFFF1F3FA), borderRadius: BorderRadius.circular(16),
       border: Border.all(color: const Color(0xFFE4E8F2))),
     child: Row(children: [
       Icon(icon, color: const Color(0xFF172B3A), size: 27),
       const SizedBox(width: 6),
       Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
+        Row(children: [
+          Expanded(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17))),
+          if (showInfo) const Icon(Icons.info_outline_rounded, size: 17, color: Color(0xFF173B6C)),
+        ]),
         Text(label, maxLines: 2, overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 11, color: Color(0xFF172033))),
       ])),
@@ -625,10 +632,6 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    // Keep the passenger order sheet mounted at all times. Some Android keyboards
-    // report a stale bottom inset after dismissal; using that inset to hide the sheet
-    // made the entire lower passenger UI disappear on the device.
-    const editingAddress = false; // Always keep the order sheet visible on Android.
     final markers = <Marker>[
       if (_fromPoint != null)
         Marker(point: _fromPoint!, width: 42, height: 42,
@@ -649,22 +652,22 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F5FA),
-      body: Stack(children: [
-        Positioned.fill(
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(initialCenter: _shymkent, initialZoom: 13, onTap: _selectMapPoint),
-            children: [
-              TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'kz.baketaxi.client'),
-              if (_route.isNotEmpty)
-                PolylineLayer(polylines: [Polyline(points: _route, strokeWidth: 5,
-                  color: const Color(0xFF1557D5), borderStrokeWidth: 1.5, borderColor: Colors.white)]),
-              MarkerLayer(markers: markers),
-              const RichAttributionWidget(attributions: [TextSourceAttribution('© OpenStreetMap contributors')]),
-            ],
-          ),
+      body: Stack(fit: StackFit.expand, children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(initialCenter: _shymkent, initialZoom: 13, onTap: _selectMapPoint),
+          children: [
+            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'kz.baketaxi.client'),
+            if (_route.isNotEmpty)
+              PolylineLayer(polylines: [Polyline(points: _route, strokeWidth: 5,
+                color: const Color(0xFF1557D5), borderStrokeWidth: 1.5, borderColor: Colors.white)]),
+            MarkerLayer(markers: markers),
+            const RichAttributionWidget(attributions: [TextSourceAttribution('© OpenStreetMap contributors')]),
+          ],
         ),
+
+        // Верхняя адресная плашка — остаётся поверх карты и не прокручивается.
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 7, 12, 0),
@@ -686,12 +689,17 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     onSubmitted: (_) => _searchFrom(),
                     onChanged: (_) => setState(() { _fromPoint = null; _route = []; }),
                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
-                    decoration: const InputDecoration(hintText: 'Укажите адрес подачи',
-                      border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 13)),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none, isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 13),
+                    ),
                   )),
-                  IconButton(padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 32, height: 38),
-                    onPressed: _locating ? null : _findMe,
-                    icon: const Icon(Icons.chevron_right_rounded, size: 30, color: Color(0xFF172033))),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(width: 32, height: 38),
+                    onPressed: _searching ? null : _searchFrom,
+                    icon: const Icon(Icons.chevron_right_rounded, size: 30, color: Color(0xFF172033)),
+                  ),
                 ]),
                 const Divider(height: 1, color: Color(0xFFE5E8EF)),
                 Row(children: [
@@ -704,12 +712,18 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                     onSubmitted: (_) => _searchDestination(),
                     onChanged: (_) => setState(() { _toPoint = null; _route = []; }),
                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF172033)),
-                    decoration: const InputDecoration(hintText: 'Выберите адрес назначения',
-                      border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 13)),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none, isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 13),
+                    ),
                   )),
-                  IconButton(padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 32, height: 38),
-                    tooltip: 'Добавить остановку', onPressed: () => setState(() => _addStop = !_addStop),
-                    icon: const Icon(Icons.add_rounded, size: 29, color: Color(0xFF172033))),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(width: 32, height: 38),
+                    tooltip: 'Добавить остановку',
+                    onPressed: () => setState(() => _addStop = !_addStop),
+                    icon: const Icon(Icons.add_rounded, size: 29, color: Color(0xFF172033)),
+                  ),
                 ]),
                 if (_addStop) _placeField(Icons.more_horiz, 'Промежуточная остановка', _stopController,
                   onSubmitted: (_) => _searchStop()),
@@ -717,122 +731,160 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
             ),
           ),
         ),
-        if (!editingAddress) ...[
-          Positioned(
-            left: 16, bottom: size.height * .625,
-            child: Material(
-              color: Colors.white, elevation: 5, shape: const CircleBorder(),
-              child: IconButton(
-                onPressed: _locating ? null : _findMe,
-                icon: const Icon(Icons.navigation_rounded, size: 27, color: Color(0xFF172033)),
-                iconSize: 46, padding: const EdgeInsets.all(13),
-              ),
+
+        // Круглые кнопки карты располагаются непосредственно над панелью заказа.
+        Positioned(
+          left: 16, bottom: size.height * .635,
+          child: Material(
+            color: Colors.white, elevation: 5, shape: const CircleBorder(),
+            child: IconButton(
+              onPressed: _locating ? null : _findMe,
+              icon: const Icon(Icons.navigation_rounded, size: 27, color: Color(0xFF172033)),
+              iconSize: 46, padding: const EdgeInsets.all(13),
             ),
           ),
-          Positioned(
-            right: 16, bottom: size.height * .625,
-            child: Material(
-              color: Colors.white, elevation: 5, shape: const CircleBorder(),
-              child: IconButton(
-                onPressed: () => _mapController.move(_fromPoint ?? _shymkent, 15),
-                icon: const Icon(Icons.my_location_rounded, size: 27, color: Color(0xFF172033)),
-                iconSize: 46, padding: const EdgeInsets.all(13),
-              ),
+        ),
+        Positioned(
+          right: 16, bottom: size.height * .635,
+          child: Material(
+            color: Colors.white, elevation: 5, shape: const CircleBorder(),
+            child: IconButton(
+              onPressed: () => _mapController.move(_fromPoint ?? _shymkent, 15),
+              icon: const Icon(Icons.my_location_rounded, size: 27, color: Color(0xFF172033)),
+              iconSize: 46, padding: const EdgeInsets.all(13),
             ),
           ),
-          Positioned(
-            left: 0, right: 0, top: size.height * .365, bottom: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, -4))],
-              ),
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(14, 13, 14, 8),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Row(children: [
-                      Icon(Icons.directions_car_filled_rounded, size: 31, color: Color(0xFF172033)),
-                      SizedBox(width: 9),
-                      Text('Выберите класс авто',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF172033))),
-                    ]),
-                    const SizedBox(height: 12),
-                    Row(children: [
-                      _offerCard(0, 'Комфорт', 'Седан', Icons.directions_car_rounded),
-                      _offerCard(1, 'Стандарт', 'Седан', Icons.directions_car_rounded),
-                      _offerCard(2, 'Бизнес', 'Седан', Icons.directions_car_filled_rounded),
-                      _offerCard(3, 'Минивэн', '6–7 мест', Icons.airport_shuttle_rounded),
-                    ]),
-                    const SizedBox(height: 12),
-                    Row(children: [
-                      Expanded(child: _metricTile(Icons.access_time_rounded, _durationLabel ?? '— мин', 'Время подачи')),
-                      const SizedBox(width: 6),
-                      Expanded(child: _metricTile(Icons.route_rounded, _distanceLabel ?? '— км', 'Расстояние')),
-                      const SizedBox(width: 6),
-                      Expanded(child: _metricTile(Icons.credit_card_rounded,
-                        '${_estimatedTaxiFare + (_boostSelected ? 250 : 0)} ₸', 'Итого к оплате')),
-                    ]),
-                    const SizedBox(height: 12),
-                    if (_createdOrder != null) ...[
-                      _passengerOrderPanel(_createdOrder!),
-                      const SizedBox(height: 10),
-                    ],
-                    SizedBox(
-                      height: 66, width: double.infinity,
-                      child: FilledButton(
-                        onPressed: (_searching || _sendingOrder) ? null : () {
-                          if (_toPoint == null) {
-                            if (_toController.text.trim().isEmpty) {
-                              _message('Укажите адрес назначения');
-                            } else { _searchDestination(); }
-                          } else if (_fromPoint == null) {
-                            _findMe();
-                          } else if (_route.isEmpty) {
-                            _buildRoute();
-                          } else {
-                            _submitOrder();
-                          }
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFC400),
-                          foregroundColor: const Color(0xFF101827),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        ),
-                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          const Icon(Icons.directions_car_filled_rounded, size: 32, color: Color(0xFF101827)),
-                          const SizedBox(width: 12),
-                          Text(_orderButtonLabel, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+        ),
+
+        // Заказная панель и нижние четыре блока закреплены внизу экрана.
+        Positioned(
+          left: 0, right: 0, top: size.height * .365, bottom: 0,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, -4))],
+            ),
+            child: SafeArea(
+              top: false,
+              child: LayoutBuilder(builder: (context, constraints) {
+                final compact = constraints.maxHeight < 500;
+                final cardHeight = compact ? 116.0 : 136.0;
+                final metricHeight = compact ? 64.0 : 72.0;
+                final buttonHeight = compact ? 54.0 : 60.0;
+                final menuHeight = compact ? 70.0 : 78.0;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 10, bottom: 5),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(children: const [
+                          Icon(Icons.directions_car_filled_rounded, size: 30, color: Color(0xFF172033)),
+                          SizedBox(width: 9),
+                          Text('Выберите класс авто',
+                            style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: Color(0xFF172033))),
                         ]),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(children: [
-                      Expanded(child: _quickTile(context, 'Доставка', 'Посылки и товары', Icons.inventory_2_rounded,
-                        const Color(0xFFE9E3FF), () => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const PassengerMapPage(initialService: JibekServiceType.parcel))))),
-                      const SizedBox(width: 7),
-                      Expanded(child: _quickTile(context, 'Услуги', 'Эвакуатор, мастер…', Icons.build_rounded,
-                        const Color(0xFFD9F5EC), () => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const BakeServicesPage())))),
-                      const SizedBox(width: 7),
-                      Expanded(child: _quickTile(context, 'Межгород', 'Поездки по РК', Icons.route_rounded,
-                        const Color(0xFFDCEBFF), () => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const IntercityPage())))),
-                      const SizedBox(width: 7),
-                      Expanded(child: _quickTile(context, 'Помощь', 'Поддержка 24/7', Icons.headset_mic_rounded,
-                        const Color(0xFFFFE3D4), () => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const BakeHelpPage())))),
-                    ]),
-                  ]),
-                ),
-              ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: SizedBox(
+                          height: cardHeight,
+                          child: Row(children: [
+                            _offerCard(0, 'Комфорт', 'Седан', Icons.directions_car_rounded, height: cardHeight),
+                            _offerCard(1, 'Стандарт', 'Седан', Icons.directions_car_rounded, height: cardHeight),
+                            _offerCard(2, 'Бизнес', 'Седан', Icons.directions_car_filled_rounded, height: cardHeight),
+                            _offerCard(3, 'Минивэн', '6–7 мест', Icons.airport_shuttle_rounded, height: cardHeight),
+                          ]),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: SizedBox(
+                          height: metricHeight,
+                          child: Row(children: [
+                            Expanded(child: _metricTile(Icons.access_time_rounded, '~ 8 мин', 'Время подачи', height: metricHeight)),
+                            const SizedBox(width: 5),
+                            Expanded(child: _metricTile(Icons.route_rounded, _distanceLabel ?? '2.7 км', 'Расстояние', height: metricHeight)),
+                            const SizedBox(width: 5),
+                            Expanded(child: _metricTile(Icons.credit_card_rounded,
+                              '${_estimatedTaxiFare + (_boostSelected ? 250 : 0)} ₸', 'Итого к оплате',
+                              height: metricHeight, showInfo: true)),
+                          ]),
+                        ),
+                      ),
+                      if (_createdOrder != null) ...[
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          height: compact ? 48 : 58,
+                          child: ClipRect(child: _passengerOrderPanel(_createdOrder!)),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: SizedBox(
+                          height: buttonHeight, width: double.infinity,
+                          child: FilledButton(
+                            onPressed: (_searching || _sendingOrder) ? null : () {
+                              if (_toPoint == null) {
+                                if (_toController.text.trim().isEmpty) {
+                                  _message('Укажите адрес назначения');
+                                } else { _searchDestination(); }
+                              } else if (_fromPoint == null) {
+                                _searchFrom();
+                              } else if (_route.isEmpty) {
+                                _buildRoute();
+                              } else {
+                                _submitOrder();
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFC400),
+                              foregroundColor: const Color(0xFF101827),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            ),
+                            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                              const Icon(Icons.directions_car_filled_rounded, size: 30, color: Color(0xFF101827)),
+                              const SizedBox(width: 12),
+                              Text(_orderButtonLabel, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+                            ]),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(children: [
+                            Expanded(child: _quickTile(context, 'Доставка', 'Посылки и товары', Icons.inventory_2_rounded,
+                              const Color(0xFFE9E3FF), () => Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => const PassengerMapPage(initialService: JibekServiceType.parcel))), height: menuHeight)),
+                            const SizedBox(width: 4),
+                            Expanded(child: _quickTile(context, 'Услуги', 'Эвакуатор, мастер…', Icons.build_rounded,
+                              const Color(0xFFD9F5EC), () => Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => const BakeServicesPage())), height: menuHeight)),
+                            const SizedBox(width: 4),
+                            Expanded(child: _quickTile(context, 'Межгород', 'Поездки по РК', Icons.route_rounded,
+                              const Color(0xFFDCEBFF), () => Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => const IntercityPage())), height: menuHeight)),
+                            const SizedBox(width: 4),
+                            Expanded(child: _quickTile(context, 'Помощь', 'Поддержка 24/7', Icons.headset_mic_rounded,
+                              const Color(0xFFFFE3D4), () => Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => const BakeHelpPage())), height: menuHeight)),
+                          ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ),
           ),
-        ],
+        ),
       ]),
     );
   }
