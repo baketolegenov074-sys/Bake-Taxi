@@ -619,34 +619,6 @@ class _DriverMapPageState extends State<DriverMapPage> {
     }
   }
 
-  Widget _serviceChip(String label, IconData icon) {
-    final selected = _services.contains(label);
-    return FilterChip(
-      selected: selected,
-      showCheckmark: false,
-      avatar: Icon(icon, size: 18, color: selected ? const Color(0xFF10243A) : const Color(0xFF687386)),
-      label: Text(label),
-      onSelected: (value) {
-        setState(() {
-          if (value) {
-            _services.add(label);
-          } else {
-            _services.remove(label);
-          }
-        });
-        if (_online) {
-          if (_services.isEmpty) {
-            _setOnline(false);
-            _notice('Выберите хотя бы одну услугу — вы отключены от линии');
-          } else {
-            _setOnline(true);
-          }
-        }
-      },
-      selectedColor: const Color(0xFFE8D5AC),
-      side: BorderSide(color: selected ? const Color(0xFFD6A84F) : const Color(0xFFE1E6EC)),
-    );
-  }
 }
 
 
