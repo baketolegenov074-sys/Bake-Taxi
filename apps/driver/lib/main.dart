@@ -855,8 +855,6 @@ class _DriverIncomingOrderPageState extends State<DriverIncomingOrderPage> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final commission = (order.priceKzt * .15).round();
-    final net = order.priceKzt - commission;
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(backgroundColor: const Color(0xFF0B1D4D), foregroundColor: Colors.white,
@@ -886,7 +884,7 @@ class _DriverIncomingOrderPageState extends State<DriverIncomingOrderPage> {
             Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Color(0xFF10243A))),
             const Divider(height: 22),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Ваш доход (расчёт 85%)'),
+              const Text('Сумма до комиссии'),
               Text('$net ₸'.replaceFirst('$', ''), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF16834A))),
             ]),
             const SizedBox(height: 4),
