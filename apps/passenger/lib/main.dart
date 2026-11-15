@@ -96,6 +96,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   void initState() {
     super.initState();
     _service = widget.initialService;
+    _showCategoryWindow = widget.initialService != JibekServiceType.cityTaxi;
     _fromController.text = 'ул. Тауке хана, 52';
     _toController.text = 'ТРЦ «Mega Shymkent»';
     _fromFocusNode.addListener(_onAddressFocusChanged);
@@ -984,16 +985,13 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Row(children: [
                             Expanded(child: _quickTile(context, 'Доставка', 'Посылки и товары', Icons.inventory_2_rounded,
-                              const Color(0xFFE9E3FF), () => Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => const PassengerMapPage(initialService: JibekServiceType.parcel))), height: menuHeight)),
+                              const Color(0xFFE9E3FF), () => setState(() { _service = JibekServiceType.parcel; _showCategoryWindow = true; }), height: menuHeight)),
                             const SizedBox(width: 4),
                             Expanded(child: _quickTile(context, 'Услуги', 'Эвакуатор, мастер…', Icons.build_rounded,
-                              const Color(0xFFD9F5EC), () => Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => const BakeServicesPage())), height: menuHeight)),
+                              const Color(0xFFD9F5EC), () => setState(() { _service = JibekServiceType.towTruck; _showCategoryWindow = true; }), height: menuHeight)),
                             const SizedBox(width: 4),
                             Expanded(child: _quickTile(context, 'Межгород', 'Поездки по РК', Icons.route_rounded,
-                              const Color(0xFFDCEBFF), () => Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => const IntercityPage())), height: menuHeight)),
+                              const Color(0xFFDCEBFF), () => setState(() { _service = JibekServiceType.intercity; _showCategoryWindow = true; }), height: menuHeight)),
                             const SizedBox(width: 4),
                             Expanded(child: _quickTile(context, 'Помощь', 'Поддержка 24/7', Icons.headset_mic_rounded,
                               const Color(0xFFFFE3D4), () => Navigator.push(context, MaterialPageRoute(
