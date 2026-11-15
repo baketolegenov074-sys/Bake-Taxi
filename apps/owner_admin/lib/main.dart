@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:bake_taxi_shared/bake_taxi_shared.dart';
 import 'permissions/startup_permissions.dart';
 
 void main() => runApp(const BakeTaxiOwnerApp());
