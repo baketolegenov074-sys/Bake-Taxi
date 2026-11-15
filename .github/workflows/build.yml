@@ -1,0 +1,337 @@
+name: Bake Taxi - Build 3 APKs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apks:
+    name: Build Android APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+          channel: stable
+          cache: true
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+
+      - name: Build three independent Android applications
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin python3-pil
+
+          # Convert the newly uploaded Bake Taxi artwork to real PNGs.
+          # Preserve the previous passenger_icon artwork for the Driver APK before replacing it.
+          python3 - <<'PY'
+          import pathlib
+          import shutil
+          import subprocess
+          from PIL import Image
+
+          source = pathlib.Path("apps/image_3b49281a (2).jpg")
+          passenger = pathlib.Path("apps/passenger_icon.png")
+          brand = pathlib.Path("apps/brand_icon.png")
+          driver = pathlib.Path("apps/driver_icon.png")
+
+          if source.is_file():
+              if not driver.exists():
+                  shutil.copy2(passenger, driver)
+                  print("Preserved the previous Driver launcher artwork as apps/driver_icon.png")
+
+              with Image.open(source) as image:
+                  artwork = image.convert("RGBA")
+                  artwork.save(passenger, format="PNG")
+                  artwork.save(brand, format="PNG")
+
+              source.unlink()
+              subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+              subprocess.run(["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], check=True)
+              subprocess.run([
+                  "git", "add", "-A",
+                  "apps/image_3b49281a (2).jpg",
+                  "apps/passenger_icon.png",
+                  "apps/brand_icon.png",
+                  "apps/driver_icon.png",
+              ], check=True)
+              staged = subprocess.run(["git", "diff", "--cached", "--quiet"])
+              if staged.returncode == 1:
+                  subprocess.run(["git", "commit", "-m", "Replace passenger and brand icons with BAKE TAXI artwork"], check=True)
+                  subprocess.run(["git", "push", "origin", f"HEAD:{__import__('os').environ['GITHUB_REF_NAME']}"], check=True)
+              elif staged.returncode != 0:
+                  raise SystemExit("Could not inspect staged icon changes")
+              print("Converted and committed BAKE TAXI PNG icons; removed the uploaded JPG.")
+          else:
+              print("BAKE TAXI source JPG is already removed; keeping committed PNG assets.")
+          PY
+
+          build_one() {
+            local app_dir="$1"
+            local project_name="$2"
+            local application_id="$3"
+            local app_label="$4"
+            local output_name="$5"
+            local icon_source="${6:-assets/launcher.svg}"
+
+            echo "===== Preparing ${output_name} ====="
+            (
+              cd "$app_dir"
+              flutter create --platforms=android --org kz.baketaxi --project-name "$project_name" .
+
+              # Install the selected branded launcher icon for this app.
+              python3 - "$icon_source" <<'PY'
+          import pathlib
+          import sys
+          import subprocess
+          from PIL import Image
+
+          source = pathlib.Path(sys.argv[1])
+          if not source.is_file():
+              raise SystemExit(f"Missing launcher artwork: {source}")
+          res = pathlib.Path("android/app/src/main/res")
+          sizes = {
+              "mipmap-mdpi": 48,
+              "mipmap-hdpi": 72,
+              "mipmap-xhdpi": 96,
+              "mipmap-xxhdpi": 144,
+              "mipmap-xxxhdpi": 192,
+          }
+          artwork = Image.open(source).convert("RGBA") if source.suffix.lower() != ".svg" else None
+          for folder, size in sizes.items():
+              target_dir = res / folder
+              target_dir.mkdir(parents=True, exist_ok=True)
+              for name in ("ic_launcher.png", "ic_launcher_round.png"):
+                  target = target_dir / name
+                  if source.suffix.lower() == ".svg":
+                      subprocess.run(
+                          ["rsvg-convert", "-w", str(size), "-h", str(size),
+                           "-o", str(target), str(source)],
+                          check=True,
+                      )
+                  else:
+                      artwork.resize((size, size), Image.Resampling.LANCZOS).save(target, format="PNG")
+          # Disable generated adaptive-icon XML so Android uses the custom density PNGs.
+          adaptive = res / "mipmap-anydpi-v26"
+          if adaptive.exists():
+              for name in ("ic_launcher.xml", "ic_launcher_round.xml"):
+                  (adaptive / name).unlink(missing_ok=True)
+          print(f"Installed branded launcher icons from {source}")
+          PY
+
+              # Keep the Android Kotlin compiler compatible with current Flutter plugins.
+              python3 - <<'PY'
+          import pathlib
+          import re
+
+          settings = pathlib.Path("android/settings.gradle")
+          if not settings.exists():
+              settings = pathlib.Path("android/settings.gradle.kts")
+          if not settings.exists():
+              raise SystemExit("Android settings.gradle was not generated")
+
+          source = settings.read_text(encoding="utf-8")
+          pattern = r'(id\s*\(?\s*["\']org\.jetbrains\.kotlin\.android["\']\s*\)?\s*version\s*["\'])[^"\']+(["\'])'
+          updated, count = re.subn(pattern, r'\g<1>2.2.0\g<2>', source, count=1)
+          if count != 1:
+              raise SystemExit("Could not update Kotlin Gradle plugin version")
+          settings.write_text(updated, encoding="utf-8")
+          print("Configured Kotlin Gradle plugin: 2.2.0")
+          PY
+
+              python3 - "$application_id" "$app_label" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          application_id, app_label = sys.argv[1], sys.argv[2]
+          gradle_files = [
+              pathlib.Path("android/app/build.gradle"),
+              pathlib.Path("android/app/build.gradle.kts"),
+          ]
+          gradle_file = next((path for path in gradle_files if path.exists()), None)
+          if gradle_file is None:
+              raise SystemExit("Android app Gradle file was not generated")
+
+          gradle = gradle_file.read_text(encoding="utf-8")
+          gradle, replacements = re.subn(
+              r'(applicationId\s*(?:=\s*)?")[^"]+(")',
+              lambda match: match.group(1) + application_id + match.group(2),
+              gradle,
+              count=1,
+          )
+          if replacements != 1:
+              raise SystemExit("Could not set the unique Android applicationId")
+          gradle_file.write_text(gradle, encoding="utf-8")
+
+          manifest_file = pathlib.Path("android/app/src/main/AndroidManifest.xml")
+          manifest = manifest_file.read_text(encoding="utf-8")
+          manifest = re.sub(
+              r'android:label="[^"]*"',
+              'android:label="' + app_label + '"',
+              manifest,
+              count=1,
+          )
+          # Keep Android permissions scoped to each APK role.
+          common_permissions = [
+              "INTERNET",
+          ]
+          if application_id == "kz.baketaxi.client":
+              permission_names = common_permissions + [
+                  "ACCESS_NETWORK_STATE",
+                  "ACCESS_FINE_LOCATION",
+                  "ACCESS_COARSE_LOCATION",
+                  "POST_NOTIFICATIONS",
+              ]
+          elif application_id == "kz.baketaxi.driverapp":
+              permission_names = common_permissions + [
+                  "POST_NOTIFICATIONS",
+                  "ACCESS_FINE_LOCATION",
+                  "ACCESS_COARSE_LOCATION",
+                  "ACCESS_BACKGROUND_LOCATION",
+                  "CAMERA",
+                  "READ_MEDIA_IMAGES",
+                  "READ_MEDIA_AUDIO",
+                  "RECORD_AUDIO",
+                  "CALL_PHONE",
+                  "READ_CONTACTS",
+                  "ACTIVITY_RECOGNITION",
+                  "FOREGROUND_SERVICE",
+                  "SYSTEM_ALERT_WINDOW",
+              ]
+          elif application_id == "kz.baketaxi.owneradmin":
+              permission_names = common_permissions + [
+                  "POST_NOTIFICATIONS",
+                  "READ_MEDIA_IMAGES",
+              ]
+          else:
+              raise SystemExit(f"Unknown Bake Taxi applicationId: {application_id}")
+
+          # Remove any previously injected permissions before writing the exact role list.
+          manifest = re.sub(
+              r'\s*<uses-permission(?:-sdk-23)?\b[^>]*/>\s*',
+              lambda match: match.group(0) if not any(
+                  f"android.permission.{name}" in match.group(0)
+                  for name in [
+                      "INTERNET", "ACCESS_NETWORK_STATE", "POST_NOTIFICATIONS",
+                      "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION",
+                      "ACCESS_BACKGROUND_LOCATION", "CAMERA", "READ_MEDIA_IMAGES",
+                      "READ_MEDIA_AUDIO", "READ_EXTERNAL_STORAGE", "RECORD_AUDIO",
+                      "CALL_PHONE", "READ_PHONE_STATE", "READ_CONTACTS",
+                      "ACTIVITY_RECOGNITION", "FOREGROUND_SERVICE", "SYSTEM_ALERT_WINDOW"
+                  ]
+              ) else "",
+              manifest,
+          )
+          permissions = [
+              f'    <uses-permission android:name="android.permission.{name}" />'
+              for name in permission_names
+          ]
+          marker = "<application"
+          if marker not in manifest:
+              raise SystemExit("Android manifest has no application element")
+          manifest = manifest.replace(marker, "\n".join(permissions) + "\n    " + marker, 1)
+          # Passenger app explicitly removes permissions contributed by transitive plugins.
+          if application_id == "kz.baketaxi.client":
+              import xml.etree.ElementTree as ET
+              android_ns = "http://schemas.android.com/apk/res/android"
+              tools_ns = "http://schemas.android.com/tools"
+              ET.register_namespace("android", android_ns)
+              ET.register_namespace("tools", tools_ns)
+              root = ET.fromstring(manifest)
+              for permission in [
+                  "android.permission.ACCESS_BACKGROUND_LOCATION",
+                  "android.permission.RECORD_AUDIO",
+                  "android.permission.READ_CONTACTS",
+                  "android.permission.CALL_PHONE",
+              ]:
+                  node = ET.SubElement(root, "uses-permission")
+                  node.set(f"{{{android_ns}}}name", permission)
+                  node.set(f"{{{tools_ns}}}node", "remove")
+              manifest = ET.tostring(root, encoding="unicode", xml_declaration=False)
+
+          manifest_file.write_text(manifest, encoding="utf-8")
+
+          print(f"Configured applicationId: {application_id}")
+          print(f"Configured app label: {app_label}")
+          PY
+
+              flutter pub get
+              flutter build apk --release
+
+              if [[ "$application_id" == "kz.baketaxi.client" ]]; then
+                python3 - <<'PY'
+          import pathlib
+          import xml.etree.ElementTree as ET
+
+          candidates = [
+              pathlib.Path("build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml"),
+              pathlib.Path("build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml"),
+          ]
+          merged = next((p for p in candidates if p.is_file()), None)
+          if merged is None:
+              raise SystemExit("Merged passenger AndroidManifest.xml not found; cannot verify Google Play permissions")
+          root = ET.parse(merged).getroot()
+          android = "{http://schemas.android.com/apk/res/android}name"
+          forbidden = {
+              "android.permission.ACCESS_BACKGROUND_LOCATION",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.READ_CONTACTS",
+              "android.permission.CALL_PHONE",
+          }
+          found = sorted(node.get(android) for node in root.findall("uses-permission") if node.get(android) in forbidden)
+          if found:
+              raise SystemExit("Passenger merged manifest contains forbidden permissions: " + ", ".join(found))
+          print("Verified passenger merged manifest: no background location, microphone, contacts or call permissions.")
+          PY
+              fi
+            )
+            cp "$app_dir/build/app/outputs/flutter-apk/app-release.apk" "dist/$output_name"
+            test -s "dist/$output_name"
+            echo "Created dist/$output_name"
+          }
+
+          build_one apps/passenger client_taxi kz.baketaxi.client "Bake Taxi" ClientTaxi.apk ../../apps/brand_icon.png
+          build_one apps/driver driver_taxi kz.baketaxi.driverapp "Bake Taxi Водитель" DriverTaxi.apk ../../apps/driver_icon.png
+          build_one apps/owner_admin owner_admin kz.baketaxi.owneradmin "Bake Taxi Админ" OwnerAdmin.apk ../../apps/admin_icon.png
+
+          echo "===== APK files ====="
+          ls -lh dist/*.apk
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bake-Taxi-APKs
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/ClientTaxi.apk
+            dist/DriverTaxi.apk
+            dist/OwnerAdmin.apk
+          generate_release_notes: true
