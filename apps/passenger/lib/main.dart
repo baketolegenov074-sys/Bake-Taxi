@@ -86,6 +86,7 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
   bool _sendingOrder = false;
   bool _refreshingOrder = false;
   bool _cancellingOrder = false;
+  int _tripRating = 5;
   JibekOrderRequest? _createdOrder;
   static const _apiUrl = String.fromEnvironment('JIBEK_API_URL');
   static const _devUserId = String.fromEnvironment('JIBEK_DEV_USER_ID');
@@ -543,6 +544,15 @@ class _PassengerMapPageState extends State<PassengerMapPage> {
         if (completed) ...[
           Text('${order.priceKzt} ₸', style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: Color(0xFF21864B))),
           const Text('Чек и детали поездки доступны в истории заказов.', style: TextStyle(fontSize: 11, color: Color(0xFF687386))),
+          const SizedBox(height: 7),
+          const Text('Оцените поездку', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+          Row(children: List.generate(5, (index) => IconButton(
+            visualDensity: VisualDensity.compact, padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 31, minHeight: 31),
+            onPressed: () => setState(() => _tripRating = index + 1),
+            icon: Icon(index < _tripRating ? Icons.star_rounded : Icons.star_outline_rounded,
+              color: const Color(0xFFFFB800), size: 25),
+          ))),
         ] else if (active) ...[
           const Text('Водитель / автомобиль появятся после назначения в системе.', style: TextStyle(fontSize: 11, color: Color(0xFF687386))),
           const SizedBox(height: 6),
