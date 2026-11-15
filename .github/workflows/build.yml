@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - flutter-migration
+    paths-ignore:
+      - '.github/workflows/build.yml'
+      - '.github/workflows/analyze-passenger.yml'
     tags:
       - 'v*'
   pull_request:
@@ -80,8 +83,6 @@ jobs:
               for filename in ("ic_launcher.png", "ic_launcher_round.png"):
                   shutil.copyfile(source, folder / filename)
 
-          # Remove generated adaptive-icon XML overrides so Android resolves the
-          # exact PNG files above rather than Flutter's generated placeholder artwork.
           adaptive = res / "mipmap-anydpi-v26"
           for filename in ("ic_launcher.xml", "ic_launcher_round.xml"):
               target = adaptive / filename
@@ -91,7 +92,6 @@ jobs:
           print(f"Copied original icon bytes from {source.name} into all mipmap densities.")
           PY
 
-              # Keep the Android Kotlin compiler compatible with current Flutter plugins.
               python3 - <<'PY'
           import pathlib
           import re
@@ -144,42 +144,28 @@ jobs:
               manifest,
               count=1,
           )
-          # Keep Android permissions scoped to each APK role.
-          common_permissions = [
-              "INTERNET",
-          ]
+          common_permissions = ["INTERNET"]
           if application_id == "kz.baketaxi.client":
               permission_names = common_permissions + [
-                  "ACCESS_NETWORK_STATE",
-                  "ACCESS_FINE_LOCATION",
-                  "ACCESS_COARSE_LOCATION",
-                  "POST_NOTIFICATIONS",
+                  "ACCESS_NETWORK_STATE", "ACCESS_FINE_LOCATION",
+                  "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS",
               ]
           elif application_id == "kz.baketaxi.driverapp":
               permission_names = common_permissions + [
-                  "POST_NOTIFICATIONS",
-                  "ACCESS_FINE_LOCATION",
-                  "ACCESS_COARSE_LOCATION",
-                  "ACCESS_BACKGROUND_LOCATION",
-                  "CAMERA",
-                  "READ_MEDIA_IMAGES",
-                  "READ_MEDIA_AUDIO",
-                  "RECORD_AUDIO",
-                  "CALL_PHONE",
-                  "READ_CONTACTS",
-                  "ACTIVITY_RECOGNITION",
-                  "FOREGROUND_SERVICE",
+                  "POST_NOTIFICATIONS", "ACCESS_FINE_LOCATION",
+                  "ACCESS_COARSE_LOCATION", "ACCESS_BACKGROUND_LOCATION",
+                  "CAMERA", "READ_MEDIA_IMAGES", "READ_MEDIA_AUDIO",
+                  "RECORD_AUDIO", "CALL_PHONE", "READ_CONTACTS",
+                  "ACTIVITY_RECOGNITION", "FOREGROUND_SERVICE",
                   "SYSTEM_ALERT_WINDOW",
               ]
           elif application_id == "kz.baketaxi.owneradmin":
               permission_names = common_permissions + [
-                  "POST_NOTIFICATIONS",
-                  "READ_MEDIA_IMAGES",
+                  "POST_NOTIFICATIONS", "READ_MEDIA_IMAGES",
               ]
           else:
               raise SystemExit(f"Unknown Bake Taxi applicationId: {application_id}")
 
-          # Remove any previously injected permissions before writing the exact role list.
           manifest = re.sub(
               r'\s*<uses-permission(?:-sdk-23)?\b[^>]*/>\s*',
               lambda match: match.group(0) if not any(
@@ -203,7 +189,6 @@ jobs:
           if marker not in manifest:
               raise SystemExit("Android manifest has no application element")
           manifest = manifest.replace(marker, "\n".join(permissions) + "\n    " + marker, 1)
-          # Passenger app explicitly removes permissions contributed by transitive plugins.
           if application_id == "kz.baketaxi.client":
               import xml.etree.ElementTree as ET
               android_ns = "http://schemas.android.com/apk/res/android"
@@ -223,13 +208,10 @@ jobs:
               manifest = ET.tostring(root, encoding="unicode", xml_declaration=False)
 
           manifest_file.write_text(manifest, encoding="utf-8")
-
           print(f"Configured applicationId: {application_id}")
           print(f"Configured app label: {app_label}")
           PY
 
-              # flutter create generates a sample counter test for a class named MyApp.
-              # This app has its own entrypoint and root widget; remove only that untouched template.
               python3 - <<'PY'
           import pathlib
 
