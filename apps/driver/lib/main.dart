@@ -10,6 +10,7 @@ import 'driver_navigator.dart';
 import 'permissions/startup_permissions.dart';
 import 'driver_profile_page.dart';
 import 'driver_search_settings.dart';
+import 'widgets/bake_taxi_splash.dart';
 
 void main() => runApp(const JibekDriverApp());
 
@@ -28,7 +29,11 @@ class JibekDriverApp extends StatelessWidget {
         title: 'Bake Taxi Водитель',
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
-        home: const DriverAppShell(),
+        home: const BakeTaxiSplash(
+          logoAsset: '../driver_icon.png',
+          subtitle: 'Кабинет водителя',
+          child: DriverAppShell(),
+        ),
       );
 }
 

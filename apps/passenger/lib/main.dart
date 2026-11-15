@@ -10,6 +10,7 @@ import 'package:jibek_shared/jibek_shared.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'passenger_home_page.dart';
+import 'widgets/bake_taxi_splash.dart';
 
 void main() => runApp(const JibekPassengerApp());
 
@@ -28,7 +29,11 @@ class JibekPassengerApp extends StatelessWidget {
         title: 'Bake Taxi',
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
-        home: const PassengerMapPage(),
+        home: const BakeTaxiSplash(
+          logoAsset: '../passenger_icon.png',
+          subtitle: 'Ваш надёжный путь по Шымкенту',
+          child: PassengerMapPage(),
+        ),
       );
 }
 
