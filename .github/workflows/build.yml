@@ -76,39 +76,49 @@ jobs:
           if not source.is_file() or source.stat().st_size == 0:
               raise SystemExit(f"Original launcher icon is missing or empty: {source}")
 
-          image = Image.open(source).convert("RGBA")
-          # Remove only transparent outer padding; preserve the actual approved artwork.
-          alpha_bounds = image.getchannel("A").getbbox()
-          if alpha_bounds:
-              image = image.crop(alpha_bounds)
-
           res = pathlib.Path("android/app/src/main/res")
-          density_sizes = {
-              "mdpi": 48,
-              "hdpi": 72,
-              "xhdpi": 96,
-              "xxhdpi": 144,
-              "xxxhdpi": 192,
-          }
-          for density, size in density_sizes.items():
-              folder = res / f"mipmap-{density}"
-              folder.mkdir(parents=True, exist_ok=True)
-              # Fill the square launcher tile instead of leaving transparent inset margins.
-              icon = ImageOps.fit(
-                  image, (size, size),
-                  method=Image.Resampling.LANCZOS,
-                  centering=(0.5, 0.5),
-              )
-              for filename in ("ic_launcher.png", "ic_launcher_round.png"):
-                  icon.save(folder / filename, format="PNG", optimize=True)
+          if application_id == "kz.baketaxi.client":
+              image = Image.open(source).convert("RGBA")
+              # Remove only transparent outer padding; preserve the approved artwork.
+              alpha_bounds = image.getchannel("A").getbbox()
+              if alpha_bounds:
+                  image = image.crop(alpha_bounds)
+
+              density_sizes = {
+                  "mdpi": 48,
+                  "hdpi": 72,
+                  "xhdpi": 96,
+                  "xxhdpi": 144,
+                  "xxxhdpi": 192,
+              }
+              for density, size in density_sizes.items():
+                  folder = res / f"mipmap-{density}"
+                  folder.mkdir(parents=True, exist_ok=True)
+                  # Fill the passenger launcher tile instead of leaving transparent inset margins.
+                  icon = ImageOps.fit(
+                      image, (size, size),
+                      method=Image.Resampling.LANCZOS,
+                      centering=(0.5, 0.5),
+                  )
+                  for filename in ("ic_launcher.png", "ic_launcher_round.png"):
+                      icon.save(folder / filename, format="PNG", optimize=True)
+              print(f"Prepared full-square passenger icon from: {source.name}")
+          else:
+              # Driver and admin icons remain byte-for-byte unchanged.
+              import shutil
+              densities = ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
+              for density in densities:
+                  folder = res / f"mipmap-{density}"
+                  folder.mkdir(parents=True, exist_ok=True)
+                  for filename in ("ic_launcher.png", "ic_launcher_round.png"):
+                      shutil.copyfile(source, folder / filename)
+              print(f"Copied original icon unchanged from: {source.name}")
 
           adaptive = res / "mipmap-anydpi-v26"
           for filename in ("ic_launcher.xml", "ic_launcher_round.xml"):
               target = adaptive / filename
               if target.exists():
                   target.unlink()
-
-          print(f"Prepared full-square launcher icons from the approved source: {source.name}")
           PY
 
               python3 - <<'PY'
