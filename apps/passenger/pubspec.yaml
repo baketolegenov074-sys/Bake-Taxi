@@ -1,4 +1,5 @@
 name: jibek_passenger
+# Android launcher build fits passenger_icon.png to the full square.
 description: Passenger app for Bake Taxi.
 publish_to: 'none'
 version: 1.0.0+1
