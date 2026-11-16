@@ -30,7 +30,7 @@ class JibekDriverApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
         home: const BakeTaxiSplash(
-          logoAsset: '../driver_icon.png',
+          gifAsset: 'assets/bake_intro.gif',
           subtitle: 'Кабинет водителя',
           child: DriverAppShell(),
         ),

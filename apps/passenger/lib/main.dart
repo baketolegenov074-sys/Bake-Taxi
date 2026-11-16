@@ -24,7 +24,7 @@ class JibekPassengerApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: JibekTheme.light(),
         home: const BakeTaxiSplash(
-          logoAsset: '../passenger_icon.png',
+          gifAsset: 'assets/bake_intro.gif',
           subtitle: 'Ваш надёжный путь по Шымкенту',
           child: PassengerMapPage(),
         ),
